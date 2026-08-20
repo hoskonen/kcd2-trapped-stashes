@@ -14,6 +14,12 @@ TrappedStashes.Config = {
         reason = "trappedstashes_gameover_trap1",
     },
 
+    trapDeathAudio = {
+        enabled = true,
+        trigger = "",
+        linkable = "player",
+    },
+
     diagnostics = {
         interactionProbe = true,
         interactionDumpDepth = 2,

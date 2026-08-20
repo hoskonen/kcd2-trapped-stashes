@@ -5,6 +5,7 @@ local Events = TrappedStashes.Events
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
 local GameOver = TrappedStashes.GameOver
+local Audio = TrappedStashes.Audio
 local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Events._nodes = Events._nodes or {}
@@ -136,6 +137,9 @@ local function triggerGameOverProof(session)
     local reason = config.reason or GameOver.TrapReason
     Debug.Log("trap-test trigger session=" .. tostring(session.id) ..
         " reason=" .. tostring(reason))
+    if Audio and type(Audio.PlayTrapDeath) == "function" then
+        Audio.PlayTrapDeath(session)
+    end
     GameOver.Trigger(reason)
 end
 
