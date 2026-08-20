@@ -10,8 +10,8 @@ TrappedStashes.Config = {
     },
 
     gameOverProof = {
-        enabled = false,
-        reason = "DiedUnknown",
+        enabled = true,
+        reason = "trappedstashes_gameover_trap1",
     },
 
     diagnostics = {
@@ -25,6 +25,8 @@ TrappedStashes.Config = {
         minigameDumpDepth = 1,
         minigameDumpKeys = 32,
         minigameDumpLines = 80,
+        noLockpickAudit = true,
+        noLockpickAuditSummaryMs = 1000,
     },
 }
 

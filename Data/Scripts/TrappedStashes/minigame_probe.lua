@@ -4,6 +4,7 @@ TrappedStashes.MinigameProbe = TrappedStashes.MinigameProbe or {}
 local Probe = TrappedStashes.MinigameProbe
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
+local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Probe._active = Probe._active or false
 Probe._targetId = Probe._targetId or nil
@@ -197,6 +198,10 @@ local function wrapNative(native, name, afterCall)
         local args = pack(...)
         Debug.Log("minigame-probe call " .. tostring(name) ..
             " args=" .. tostring(args.n))
+        if name == "StartLockPicking" and NoLockpickAudit and
+                type(NoLockpickAudit.ObserveStart) == "function" then
+            NoLockpickAudit.ObserveStart(args[1])
+        end
 
         local ok, result = pcall(function()
             return pack(original(unpackPacked(args)))

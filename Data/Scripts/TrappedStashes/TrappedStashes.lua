@@ -10,6 +10,7 @@ Script.ReloadScript("Scripts/TrappedStashes/lockpick_session.lua")
 Script.ReloadScript("Scripts/TrappedStashes/game_over.lua")
 Script.ReloadScript("Scripts/TrappedStashes/events.lua")
 Script.ReloadScript("Scripts/TrappedStashes/interaction_probe.lua")
+Script.ReloadScript("Scripts/TrappedStashes/no_lockpick_audit.lua")
 Script.ReloadScript("Scripts/TrappedStashes/minigame_probe.lua")
 
 function TrappedStashes.OnGameplayStarted()
@@ -19,10 +20,12 @@ function TrappedStashes.OnGameplayStarted()
 
     TrappedStashes.Events.Reset("OnGameplayStarted")
     TrappedStashes.InteractionProbe.Reset("OnGameplayStarted")
+    TrappedStashes.NoLockpickAudit.Reset("OnGameplayStarted")
     TrappedStashes.MinigameProbe.Reset("OnGameplayStarted")
     TrappedStashes.Debug.Log("Initialized")
     TrappedStashes.Events.RegisterLockpicking()
     TrappedStashes.InteractionProbe.Register()
+    TrappedStashes.NoLockpickAudit.Register()
     TrappedStashes.MinigameProbe.Register()
 end
 

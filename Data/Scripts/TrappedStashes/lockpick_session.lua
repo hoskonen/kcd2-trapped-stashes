@@ -4,6 +4,7 @@ TrappedStashes.LockpickSession = TrappedStashes.LockpickSession or {}
 local Session = TrappedStashes.LockpickSession
 local Target = TrappedStashes.LockpickTarget
 local Eligibility = TrappedStashes.Eligibility
+local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Session._nextId = tonumber(Session._nextId) or 0
 Session.current = Session.current or nil
@@ -53,6 +54,10 @@ function Session.BeginFromStart(targetId, nativeEvent)
         tostring(Session.current.id) ..
         " source=" .. tostring(Session.current.startNativeEvent) ..
         " startKnown=true")
+    if okEligibility and NoLockpickAudit and
+            type(NoLockpickAudit.ObserveEligibility) == "function" then
+        NoLockpickAudit.ObserveEligibility(Session.current)
+    end
     Target.Log(target)
 
     return Session.current

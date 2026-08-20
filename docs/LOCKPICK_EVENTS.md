@@ -121,6 +121,8 @@ If native functions named `StopLockPicking`, `Stop`, `End`, `Close`, or
 `RequestExit` exist on the runtime `Minigame` table, the probe wraps them too
 and logs them as end candidates. Those are diagnostic only until tested.
 
+For the zero-lockpick edge case audit, see `docs/NO_LOCKPICK_AUDIT.md`.
+
 ## Next In-Game Test
 
 Run these cases and compare against `kcd.log`:
@@ -221,19 +223,27 @@ The original lethal proof path used the implicit `OnFailed` session. When
 for a session calls:
 
 ```lua
-wh.playermodule.GameOver("DiedUnknown")
+wh.playermodule.GameOver("trappedstashes_gameover_trap1")
 ```
 
-`DiedUnknown` is a vanilla row from:
+`trappedstashes_gameover_trap1` is the Trapped Stashes custom row:
 
 ```text
-Data/Tables.pak:Libs/Tables/rpg/game_over.xml
+game_over_id=1000
+game_over_name=trappedstashes_gameover_trap1
+game_over_ui_message=trappedstashes_gameover_trap1_text
 ```
 
-This is temporary proof behavior. It should be removed or disabled before trap
-eligibility work begins.
+The localized message key is:
 
-For the production eligibility classifier phase,
-`TrappedStashes.Config.gameOverProof.enabled` is `false`. The classifier only
-logs eligibility and never triggers GameOver, rolls probability, selects traps,
-or persists trap state.
+```text
+trappedstashes_gameover_trap1_text = "Ooops! You died from the arrow!"
+```
+
+This is temporary proof behavior for testing the custom Trapped Stashes game
+over row. In the current test build,
+`TrappedStashes.Config.gameOverProof.enabled` is `true`, so `OnFailed` should
+trigger GameOver with `trappedstashes_gameover_trap1`.
+
+This should be replaced by the real trap execution path before production trap
+selection/probability work.

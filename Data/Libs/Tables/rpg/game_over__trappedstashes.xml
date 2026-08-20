@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<game_overs version="1">
+		<game_over game_over_id="1000" game_over_name="trappedstashes_gameover_trap1" game_over_type_id="0" game_over_ui_message="trappedstashes_gameover_trap1_text" />
+	</game_overs>
+</database>

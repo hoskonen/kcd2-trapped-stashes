@@ -5,6 +5,7 @@ local Events = TrappedStashes.Events
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
 local GameOver = TrappedStashes.GameOver
+local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Events._nodes = Events._nodes or {}
 Events._connections = Events._connections or {}
@@ -113,13 +114,26 @@ local function triggerGameOverProof(session)
     if config.enabled ~= true then
         return
     end
+    if session == nil or session.eligibility == nil or
+            session.eligibility.eligible ~= true then
+        local reasons = session and session.eligibility and
+            session.eligibility.reasons or nil
+        Debug.Log("trap-test skipped session=" ..
+            tostring(session and session.id) ..
+            " reason=not-eligible targetCategory=" ..
+            tostring(session and session.targetCategory) ..
+            " targetId=" .. tostring(session and session.targetId) ..
+            " eligibilityReasons=" ..
+            tostring(reasons and table.concat(reasons, ",") or "nil"))
+        return
+    end
     if not Session.MarkTrapTriggered() then
         Debug.Trace("gameover-proof skipped=session-already-triggered session=" ..
             tostring(session and session.id))
         return
     end
 
-    local reason = config.reason or "DiedUnknown"
+    local reason = config.reason or GameOver.TrapReason
     Debug.Log("trap-test trigger session=" .. tostring(session.id) ..
         " reason=" .. tostring(reason))
     GameOver.Trigger(reason)
@@ -173,6 +187,10 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnFailed", function(...)
         local session = Session.RecordBroken("OnFailed")
+        if NoLockpickAudit and
+                type(NoLockpickAudit.ObserveResult) == "function" then
+            NoLockpickAudit.ObserveResult("failed", session)
+        end
         Debug.Log("lockpick-broken count=" .. tostring(session.breakCount) ..
             " session=" .. tostring(session.id) ..
             " startKnown=" .. tostring(session.startKnown) ..
@@ -186,6 +204,10 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnLockpicked", function(...)
         local session = Session.EnsureFromResult("OnLockpicked")
+        if NoLockpickAudit and
+                type(NoLockpickAudit.ObserveResult) == "function" then
+            NoLockpickAudit.ObserveResult("lockpicked", session)
+        end
         Debug.Log("lockpick-success breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..
@@ -200,6 +222,10 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnInterrupted", function(...)
         local session = Session.EnsureFromResult("OnInterrupted")
+        if NoLockpickAudit and
+                type(NoLockpickAudit.ObserveResult) == "function" then
+            NoLockpickAudit.ObserveResult("interrupted", session)
+        end
         Debug.Log("lockpick-interrupted breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..

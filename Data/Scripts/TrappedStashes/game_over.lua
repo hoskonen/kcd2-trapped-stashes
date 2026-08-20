@@ -4,7 +4,11 @@ TrappedStashes.GameOver = TrappedStashes.GameOver or {}
 local GameOver = TrappedStashes.GameOver
 local Debug = TrappedStashes.Debug
 
+GameOver.TrapReason = "trappedstashes_gameover_trap1"
+
 function GameOver.Trigger(reason)
+    reason = reason or GameOver.TrapReason
+
     if type(reason) ~= "string" or reason == "" then
         Debug.Log("ERROR gameover invalid-reason")
         return nil, "invalid reason"
