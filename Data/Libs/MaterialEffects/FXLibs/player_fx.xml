@@ -1,0 +1,91 @@
+<FXLib>
+
+	<!-- combat effects -->
+
+	<Effect name="player_hit_head_passed">
+		<FlowGraph name="wh_hit_passed_head" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_hit_head_stopped">
+		<FlowGraph name="wh_hit_stopped_head" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_hit_body_passed">
+		<FlowGraph name="wh_hit_passed" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_hit_body_stopped">
+		<FlowGraph name="wh_hit_stopped" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_death">
+		<FlowGraph name="player_death" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_health">
+		<FlowGraph name="player_health" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_stamina">
+		<FlowGraph name="player_stamina" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_injured_head">
+		<FlowGraph name="player_injured_head" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_hunger">
+		<FlowGraph name="player_hunger" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_exhausted">
+		<FlowGraph name="player_exhausted" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_timewarp">
+		<FlowGraph name="player_timewarp" maxdist="0"/>
+	</Effect>
+
+	<Effect name="player_sleep_fader">
+		<FlowGraph name="player_sleep_fader" maxdist="0"/>
+	</Effect>
+
+	<!-- buff effects -->
+	
+	<Effect name="player_drunkenness">
+		<FlowGraph name="player_drunkenness" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_berserker">
+		<FlowGraph name="player_berserker" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_poison">
+		<FlowGraph name="player_poison" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_bane">
+		<FlowGraph name="player_bane" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_witch">
+		<FlowGraph name="player_witch" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_owl">
+		<FlowGraph name="player_owl" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="player_hangover">
+		<FlowGraph name="player_hangover" maxdist="0"/>
+	</Effect>
+	
+	<Effect name="m09_buff">
+		<FlowGraph name="m09_buff" maxdist="0"/>
+	</Effect>
+
+	<Effect name="trappedstashes_blood_screen">
+		<FlowGraph name="player_damage" maxdist="0"/>
+	</Effect>
+	
+</FXLib>

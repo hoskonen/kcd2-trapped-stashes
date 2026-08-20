@@ -4,8 +4,7 @@ TrappedStashes.Events = TrappedStashes.Events or {}
 local Events = TrappedStashes.Events
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
-local GameOver = TrappedStashes.GameOver
-local Audio = TrappedStashes.Audio
+local TrapSequence = TrappedStashes.TrapSequence
 local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Events._nodes = Events._nodes or {}
@@ -110,8 +109,8 @@ local function lockpickableEntityText(node)
     return Debug.Handle(valueOrError)
 end
 
-local function triggerGameOverProof(session)
-    local config = TrappedStashes.Config.gameOverProof or {}
+local function startTrapSequence(session)
+    local config = TrappedStashes.Config.trapSequence or {}
     if config.enabled ~= true then
         return
     end
@@ -119,7 +118,7 @@ local function triggerGameOverProof(session)
             session.eligibility.eligible ~= true then
         local reasons = session and session.eligibility and
             session.eligibility.reasons or nil
-        Debug.Log("trap-test skipped session=" ..
+        Debug.Log("trap-sequence skipped session=" ..
             tostring(session and session.id) ..
             " reason=not-eligible targetCategory=" ..
             tostring(session and session.targetCategory) ..
@@ -128,19 +127,14 @@ local function triggerGameOverProof(session)
             tostring(reasons and table.concat(reasons, ",") or "nil"))
         return
     end
-    if not Session.MarkTrapTriggered() then
-        Debug.Trace("gameover-proof skipped=session-already-triggered session=" ..
+
+    if TrapSequence == nil or type(TrapSequence.Start) ~= "function" then
+        Debug.Log("ERROR trap-sequence unavailable session=" ..
             tostring(session and session.id))
         return
     end
 
-    local reason = config.reason or GameOver.TrapReason
-    Debug.Log("trap-test trigger session=" .. tostring(session.id) ..
-        " reason=" .. tostring(reason))
-    if Audio and type(Audio.PlayTrapDeath) == "function" then
-        Audio.PlayTrapDeath(session)
-    end
-    GameOver.Trigger(reason)
+    TrapSequence.Start(session)
 end
 
 local function sessionTargetText(session)
@@ -201,7 +195,7 @@ function Events.RegisterLockpicking()
             sessionTargetText(session) ..
             " native=OnFailed args=" .. tostring(argCount(...)) ..
             " lockpickable=" .. lockpickableEntityText(node))
-        triggerGameOverProof(session)
+        startTrapSequence(session)
     end) then
         bound = bound + 1
     end

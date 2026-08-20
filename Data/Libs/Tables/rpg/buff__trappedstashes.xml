@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="barbora" xsi:noNamespaceSchemaLocation="../database.xsd">
+	<buffs version="1">
+    <buff buff_class_id="0"
+      buff_exclusivity_id="1"
+      buff_id="25bb8ae5-4b2a-4d82-aeef-0309d885f147"
+      buff_lifetime_id="0"
+      buff_name="trappedstashes_blood_screen"
+      duration="4"
+      icon_id="0"
+      implementation="Cpp:BasicTimed"
+      is_persistent="false"
+      visual_effect="trappedstashes_blood_screen" />
+    </buffs>
+</database>

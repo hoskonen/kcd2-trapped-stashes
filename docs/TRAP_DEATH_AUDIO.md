@@ -1,39 +1,50 @@
 # Trap Death Audio
 
-Status: prepared only. No sound plays until an ATL trigger name is configured.
+Status: file playback prepared through LuaUtils `AudioManager`.
 
-Trapped Stashes uses the LuaUtils global sound helper:
-
-```lua
-wh.soundmodule.AudioOneShot(AtlTriggerName, LinkableObject)
-```
-
-The call is made from the existing eligible lockpick-break GameOver path:
-
-```text
-LockpickingResultTrigger.OnFailed
-  -> triggerGameOverProof(session)
-  -> TrappedStashes.Audio.PlayTrapDeath(session)
-  -> TrappedStashes.GameOver.Trigger(reason)
-```
-
-Configuration lives in `Data/Scripts/TrappedStashes/Config.lua`:
+The configured sound is:
 
 ```lua
 trapDeathAudio = {
     enabled = true,
-    trigger = "",
-    linkable = "player",
+    path = "Sounds/crossbow-shot1.wav",
+    bus = "bus:/dieg/w_obj",
+    volume = 1.0,
+    pitch = 1.0,
 }
 ```
 
-Set `trigger` to the arrow/impact ATL trigger when available. With an empty
-trigger, the module logs `audio skipped reason=missing-trigger` and does not
-change gameplay.
+The file is played by the timed arrow trap sequence:
 
-`linkable` can be:
+```text
+LockpickingResultTrigger.OnFailed
+  -> TrappedStashes.TrapSequence.Start(session)
+  -> soundAtMs
+  -> TrappedStashes.Audio.PlayArrowTrapSound(session)
+  -> gameOverAtMs
+  -> TrappedStashes.GameOver.Trigger("DiedUnknown")
+```
 
-- `player`: play on Henry/player linkable object.
-- `target`: play on the trapped target if available, otherwise player.
+Timing is tuned in `Data/Scripts/TrappedStashes/Config.lua`:
+
+```lua
+trapSequence = {
+    enabled = true,
+    soundAtMs = 250,
+    gameOverAtMs = 1250,
+}
+```
+
+Both offsets are absolute milliseconds from sequence start.
+
+Debug test command:
+
+```text
+ts_sound_file_test
+ts_sound_file_test Sounds/crossbow-shot1.wav
+```
+
+This route does not use SKALD/ATL trigger names. It requires a LuaUtils build
+that exposes the `AudioManager` global with `LoadSound` and `PlaySound`.
 
 GameOver still fires even if the audio call fails.
