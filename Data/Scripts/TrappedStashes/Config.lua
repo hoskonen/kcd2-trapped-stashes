@@ -10,7 +10,7 @@ TrappedStashes.Config = {
     },
 
     gameOverProof = {
-        enabled = true,
+        enabled = false,
         reason = "DiedUnknown",
     },
 

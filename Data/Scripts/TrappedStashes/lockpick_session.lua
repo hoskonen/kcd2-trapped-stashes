@@ -3,6 +3,7 @@ TrappedStashes.LockpickSession = TrappedStashes.LockpickSession or {}
 
 local Session = TrappedStashes.LockpickSession
 local Target = TrappedStashes.LockpickTarget
+local Eligibility = TrappedStashes.Eligibility
 
 Session._nextId = tonumber(Session._nextId) or 0
 Session.current = Session.current or nil
@@ -20,6 +21,19 @@ end
 
 function Session.BeginFromStart(targetId, nativeEvent)
     local target = Target.Resolve(targetId)
+    local eligibility = nil
+    local eligibilityContext = nil
+    local okEligibility, errEligibility = pcall(function()
+        eligibility, eligibilityContext = Eligibility.Classify(target)
+    end)
+    if not okEligibility then
+        TrappedStashes.Debug.Log("ERROR eligibility failed error=" ..
+            tostring(errEligibility))
+        eligibility = {
+            eligible = false,
+            reasons = { "classifier-error" },
+        }
+    end
 
     Session.current = {
         id = nextId(),
@@ -31,6 +45,8 @@ function Session.BeginFromStart(targetId, nativeEvent)
         target = target,
         targetCategory = target.category,
         targetResolved = target.resolved,
+        eligibility = eligibility,
+        eligibilityContext = eligibilityContext,
     }
 
     TrappedStashes.Debug.Log("lockpick-session-start session=" ..

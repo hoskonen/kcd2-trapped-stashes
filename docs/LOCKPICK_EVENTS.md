@@ -96,10 +96,9 @@ Expected lines from the current diagnostic implementation:
 [TrappedStashes] Initialized
 [TrappedStashes] lockpick-events-bound count=3 outputs=OnFailed,OnLockpicked,OnInterrupted
 [TrappedStashes] lockpick-session-start session=1 source=Minigame.StartLockPicking startKnown=true
-[TrappedStashes] lockpick-target category=Stash targetId=... cryEntityId=... name=... class=... lockType=... nUserId=... lock.bLocked=... lock.bCanLockPick=... lock.fLockDifficulty=... lock.esLockFanciness=... lock.guidItemClassId=... stash.sGeneratedInventory=... stash.esChestContextLabel=... stash.inventoryWuid=...
+[TrappedStashes] lockpick-target category=Stash targetId=... cryEntityId=... name=... class=... lockType=... nUserId=... lock.bLocked=... lock.bCanLockPick=... lock.fLockDifficulty=... lockDifficultyRaw=... lockDifficultyTier=... lockDifficultyPrompt=... lock.esLockFanciness=... lock.guidItemClassId=... stash.sGeneratedInventory=... stash.esChestContextLabel=... stash.inventoryWuid=...
+[TrappedStashes] eligibility target=... class=Stash locked=true lockpickable=true chestLike=true forest=true socialClass bandit=true ruffian=false cuman=false faction bandit=true ruffian=false cuman=false lockDifficultyRaw=... lockDifficultyTier=... lockDifficultyPrompt=... generatedInventory=... context=... stashWuid=... ownerWuid=... homeWuid=... eligible=true reasons=
 [TrappedStashes] lockpick-broken count=1 session=1 startKnown=true native=OnFailed args=0 lockpickable=...
-[TrappedStashes] trap-test trigger session=1 reason=DiedUnknown
-[TrappedStashes] gameover-triggered reason=DiedUnknown
 [TrappedStashes] lockpick-success breakCount=1 session=1 startKnown=true native=OnLockpicked args=0 lockpickable=...
 [TrappedStashes] lockpick-interrupted breakCount=0 session=1 startKnown=true native=OnInterrupted args=0 lockpickable=...
 ```
@@ -217,7 +216,7 @@ distinguish lockpicking from ordinary chest opening?
 
 ## Game Over Proof
 
-The current proof path deliberately uses the implicit `OnFailed` session. When
+The original lethal proof path used the implicit `OnFailed` session. When
 `TrappedStashes.Config.gameOverProof.enabled` is `true`, the first `OnFailed`
 for a session calls:
 
@@ -233,3 +232,8 @@ Data/Tables.pak:Libs/Tables/rpg/game_over.xml
 
 This is temporary proof behavior. It should be removed or disabled before trap
 eligibility work begins.
+
+For the production eligibility classifier phase,
+`TrappedStashes.Config.gameOverProof.enabled` is `false`. The classifier only
+logs eligibility and never triggers GameOver, rolls probability, selects traps,
+or persists trap state.

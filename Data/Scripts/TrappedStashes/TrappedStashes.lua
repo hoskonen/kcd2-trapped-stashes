@@ -5,6 +5,7 @@ TrappedStashes._lifecycleBindGeneration =
 Script.ReloadScript("Scripts/TrappedStashes/Config.lua")
 Script.ReloadScript("Scripts/TrappedStashes/debug.lua")
 Script.ReloadScript("Scripts/TrappedStashes/lockpick_target.lua")
+Script.ReloadScript("Scripts/TrappedStashes/eligibility.lua")
 Script.ReloadScript("Scripts/TrappedStashes/lockpick_session.lua")
 Script.ReloadScript("Scripts/TrappedStashes/game_over.lua")
 Script.ReloadScript("Scripts/TrappedStashes/events.lua")

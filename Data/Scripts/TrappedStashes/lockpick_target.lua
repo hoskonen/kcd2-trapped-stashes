@@ -43,6 +43,14 @@ local LOCK_SPECS = {
     { key = "guidItemClassId", names = { "guidItemClassId", "keyGuid", "KeyGuid" } },
 }
 
+local LOCK_DIFFICULTY_TIERS = {
+    { min = 0.8, tier = "veryHard", prompt = "ui_hud_lockpick_difficulty_5" },
+    { min = 0.6, tier = "hard", prompt = "ui_hud_lockpick_difficulty_4" },
+    { min = 0.4, tier = "medium", prompt = "ui_hud_lockpick_difficulty_3" },
+    { min = 0.2, tier = "easy", prompt = "ui_hud_lockpick_difficulty_2" },
+    { min = 0.0, tier = "veryEasy", prompt = "ui_hud_lockpick_difficulty_1" },
+}
+
 local ROOTS = {
     { label = "entity", path = {} },
     { label = "entity.Properties", path = { "Properties" } },
@@ -169,6 +177,21 @@ local function readLockMetadata(entity)
         }
     end
 
+    local raw = tonumber(lock.fLockDifficulty)
+    lock.difficultyRaw = raw
+    lock.difficultyTier = "unknown"
+    lock.difficultyPrompt = "unknown"
+
+    if raw ~= nil then
+        for _, tier in ipairs(LOCK_DIFFICULTY_TIERS) do
+            if raw >= tier.min then
+                lock.difficultyTier = tier.tier
+                lock.difficultyPrompt = tier.prompt
+                break
+            end
+        end
+    end
+
     return lock
 end
 
@@ -236,6 +259,9 @@ function Target.SummaryLine(snapshot)
         " lock.bLocked=" .. valueText(lock.bLocked) ..
         " lock.bCanLockPick=" .. valueText(lock.bCanLockPick) ..
         " lock.fLockDifficulty=" .. valueText(lock.fLockDifficulty) ..
+        " lockDifficultyRaw=" .. valueText(lock.difficultyRaw) ..
+        " lockDifficultyTier=" .. valueText(lock.difficultyTier) ..
+        " lockDifficultyPrompt=" .. valueText(lock.difficultyPrompt) ..
         " lock.esLockFanciness=" .. valueText(lock.esLockFanciness) ..
         " lock.guidItemClassId=" .. valueText(lock.guidItemClassId)
 
@@ -282,4 +308,3 @@ function Target.Log(snapshot)
         end
     end
 end
-
