@@ -70,11 +70,9 @@ TrappedStashes.Config = {
     },
 
     trapBuffExperiment = {
-        enabled = true,
+        enabled = false,
         maxBuffs = 20,
-        buffs = {
-            { id = "62eeb23f-ccbf-4af9-8f8d-de57da75c50e", name = "test_fading" },
-        },
+        buffs = {},
     },
 
     trapDeathAudio = {
