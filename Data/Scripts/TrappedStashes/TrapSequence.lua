@@ -4,19 +4,13 @@ TrappedStashes.TrapSequence = TrappedStashes.TrapSequence or {}
 local TrapSequence = TrappedStashes.TrapSequence
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
-local Audio = TrappedStashes.Audio
 local GameOver = TrappedStashes.GameOver
+local TrapEffects = TrappedStashes.TrapEffects
 
 TrapSequence._generation = tonumber(TrapSequence._generation) or 0
 
-local BLOOD_SCREEN_BUFF_ID = "25bb8ae5-4b2a-4d82-aeef-0309d885f147"
-
 local function cfg()
     return TrappedStashes.Config and TrappedStashes.Config.trapSequence or {}
-end
-
-local function buffExperimentCfg()
-    return TrappedStashes.Config and TrappedStashes.Config.trapBuffExperiment or {}
 end
 
 local function gameOverReason()
@@ -124,107 +118,6 @@ local function requestLockpickExit(session)
     return result == true, result
 end
 
-local function addBloodScreenBuff(sessionId)
-    if type(player) ~= "table" or type(player.soul) ~= "table" or
-            type(player.soul.AddBuff) ~= "function" then
-        Debug.Log("trap-sequence blood-buff failed session=" ..
-            tostring(sessionId) .. " error=player-soul-addbuff-unavailable")
-        return false, "player-soul-addbuff-unavailable"
-    end
-
-    local ok, result = pcall(function()
-        return player.soul:AddBuff(BLOOD_SCREEN_BUFF_ID)
-    end)
-
-    if not ok then
-        Debug.Log("trap-sequence blood-buff failed session=" ..
-            tostring(sessionId) .. " buff=" .. BLOOD_SCREEN_BUFF_ID ..
-            " error=" .. tostring(result))
-        return false, result
-    end
-
-    Debug.Log("trap-sequence blood-buff session=" .. tostring(sessionId) ..
-        " buff=" .. BLOOD_SCREEN_BUFF_ID ..
-        " result=" .. tostring(result))
-    return true, result
-end
-
-local function addPlayerBuff(sessionId, buffId, name, index)
-    if type(buffId) ~= "string" or buffId == "" then
-        Debug.Log("trap-buff-experiment failed session=" .. tostring(sessionId) ..
-            " index=" .. tostring(index) .. " error=missing-buff-id")
-        return false, "missing-buff-id"
-    end
-
-    if type(player) ~= "table" or type(player.soul) ~= "table" or
-            type(player.soul.AddBuff) ~= "function" then
-        Debug.Log("trap-buff-experiment failed session=" .. tostring(sessionId) ..
-            " index=" .. tostring(index) .. " name=" .. tostring(name) ..
-            " buff=" .. tostring(buffId) ..
-            " error=player-soul-addbuff-unavailable")
-        return false, "player-soul-addbuff-unavailable"
-    end
-
-    local ok, result = pcall(function()
-        return player.soul:AddBuff(buffId)
-    end)
-
-    if not ok then
-        Debug.Log("trap-buff-experiment failed session=" .. tostring(sessionId) ..
-            " index=" .. tostring(index) .. " name=" .. tostring(name) ..
-            " buff=" .. tostring(buffId) .. " error=" .. tostring(result))
-        return false, result
-    end
-
-    Debug.Log("trap-buff-experiment applied session=" .. tostring(sessionId) ..
-        " index=" .. tostring(index) .. " name=" .. tostring(name) ..
-        " buff=" .. tostring(buffId) .. " result=" .. tostring(result))
-    return true, result
-end
-
-local function applyBuffExperiment(sessionId)
-    local config = buffExperimentCfg()
-    if config.enabled ~= true then
-        return false, "disabled"
-    end
-
-    local buffs = config.buffs
-    if type(buffs) ~= "table" then
-        Debug.Log("trap-buff-experiment skipped session=" .. tostring(sessionId) ..
-            " reason=no-buffs")
-        return false, "no-buffs"
-    end
-
-    local maxBuffs = tonumber(config.maxBuffs) or 20
-    if maxBuffs < 0 then maxBuffs = 0 end
-
-    local applied = 0
-    Debug.Log("trap-buff-experiment start session=" .. tostring(sessionId) ..
-        " maxBuffs=" .. tostring(maxBuffs))
-
-    for index, entry in ipairs(buffs) do
-        if applied >= maxBuffs then
-            break
-        end
-
-        local buffId = entry
-        local name = ""
-        if type(entry) == "table" then
-            buffId = entry.id or entry.buffId
-            name = entry.name or ""
-        end
-
-        local ok = addPlayerBuff(sessionId, buffId, name, index)
-        if ok then
-            applied = applied + 1
-        end
-    end
-
-    Debug.Log("trap-buff-experiment done session=" .. tostring(sessionId) ..
-        " applied=" .. tostring(applied))
-    return true, applied
-end
-
 function TrapSequence.Reset(reason)
     TrapSequence._generation = TrapSequence._generation + 1
     Debug.Trace("trap-sequence reset reason=" .. tostring(reason or "unknown"))
@@ -259,8 +152,12 @@ function TrapSequence.Start(session)
         " gameOverAtMs=" .. tostring(gameOverAtMs) ..
         " gameOverEnabled=" .. tostring(config.gameOverEnabled ~= false))
 
-    addBloodScreenBuff(sessionId)
-    applyBuffExperiment(sessionId)
+    if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
+        TrapEffects.ApplyBloodEffect(sessionId)
+    end
+    if TrapEffects and type(TrapEffects.ApplyBuffExperiment) == "function" then
+        TrapEffects.ApplyBuffExperiment(sessionId)
+    end
 
     if gameOverAtMs < soundAtMs then
         Debug.Log("trap-sequence config gameOverBeforeSound session=" ..
@@ -272,15 +169,15 @@ function TrapSequence.Start(session)
         if stale(generation, sessionId, "sound") then return end
 
         Debug.Log("trap-sequence sound session=" .. tostring(sessionId))
-        if Audio and type(Audio.PlayArrowTrapSound) == "function" then
-            local ok, result = Audio.PlayArrowTrapSound(session)
+        if TrapEffects and type(TrapEffects.PlayArrowSound) == "function" then
+            local ok, result = TrapEffects.PlayArrowSound(session)
             if not ok then
                 Debug.Log("trap-sequence sound-failed session=" ..
                     tostring(sessionId) .. " error=" .. tostring(result))
             end
         else
             Debug.Log("trap-sequence sound-failed session=" ..
-                tostring(sessionId) .. " error=audio-function-unavailable")
+                tostring(sessionId) .. " error=trap-effects-unavailable")
         end
     end)
 

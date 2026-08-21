@@ -4,7 +4,7 @@ TrappedStashes.Audio = TrappedStashes.Audio or {}
 local Audio = TrappedStashes.Audio
 local Debug = TrappedStashes.Debug
 
-local DEFAULT_SOUND_PATH = "Libs/Audio/TrappedStashes/crossbow-shot1.wav"
+local DEFAULT_SOUND_PATH = "Sounds/crossbow-shot1.wav"
 
 Audio._loadedSounds = Audio._loadedSounds or {}
 

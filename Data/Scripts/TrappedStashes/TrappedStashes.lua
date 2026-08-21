@@ -3,19 +3,17 @@ TrappedStashes._lifecycleBindGeneration =
     tonumber(TrappedStashes._lifecycleBindGeneration) or 0
 
 Script.ReloadScript("Scripts/TrappedStashes/Config.lua")
-Script.ReloadScript("Scripts/TrappedStashes/debug.lua")
-Script.ReloadScript("Scripts/TrappedStashes/lockpick_target.lua")
-Script.ReloadScript("Scripts/TrappedStashes/eligibility.lua")
-Script.ReloadScript("Scripts/TrappedStashes/lockpick_session.lua")
-Script.ReloadScript("Scripts/TrappedStashes/audio.lua")
-Script.ReloadScript("Scripts/TrappedStashes/game_over.lua")
-Script.ReloadScript("Scripts/TrappedStashes/trap_sequence.lua")
-Script.ReloadScript("Scripts/TrappedStashes/impact.lua")
-Script.ReloadScript("Scripts/TrappedStashes/events.lua")
-Script.ReloadScript("Scripts/TrappedStashes/commands.lua")
-Script.ReloadScript("Scripts/TrappedStashes/interaction_probe.lua")
-Script.ReloadScript("Scripts/TrappedStashes/no_lockpick_audit.lua")
-Script.ReloadScript("Scripts/TrappedStashes/minigame_probe.lua")
+Script.ReloadScript("Scripts/TrappedStashes/Debug.lua")
+Script.ReloadScript("Scripts/TrappedStashes/LockpickTarget.lua")
+Script.ReloadScript("Scripts/TrappedStashes/Eligibility.lua")
+Script.ReloadScript("Scripts/TrappedStashes/LockpickSession.lua")
+Script.ReloadScript("Scripts/TrappedStashes/Audio.lua")
+Script.ReloadScript("Scripts/TrappedStashes/GameOver.lua")
+Script.ReloadScript("Scripts/TrappedStashes/TrapEffects.lua")
+Script.ReloadScript("Scripts/TrappedStashes/TrapSequence.lua")
+Script.ReloadScript("Scripts/TrappedStashes/Events.lua")
+Script.ReloadScript("Scripts/TrappedStashes/DebugCommands.lua")
+Script.ReloadScript("Scripts/TrappedStashes/MinigameProbe.lua")
 
 function TrappedStashes.OnGameplayStarted()
     if TrappedStashes.Config and TrappedStashes.Config.enabled == false then
@@ -23,16 +21,12 @@ function TrappedStashes.OnGameplayStarted()
     end
 
     TrappedStashes.Events.Reset("OnGameplayStarted")
-    TrappedStashes.InteractionProbe.Reset("OnGameplayStarted")
-    TrappedStashes.NoLockpickAudit.Reset("OnGameplayStarted")
     TrappedStashes.MinigameProbe.Reset("OnGameplayStarted")
     TrappedStashes.TrapSequence.Reset("OnGameplayStarted")
-    TrappedStashes.TrapImpact.Reset("OnGameplayStarted")
+    TrappedStashes.TrapEffects.Reset("OnGameplayStarted")
     TrappedStashes.Debug.Log("Initialized")
     TrappedStashes.Commands.Register()
     TrappedStashes.Events.RegisterLockpicking()
-    TrappedStashes.InteractionProbe.Register()
-    TrappedStashes.NoLockpickAudit.Register()
     TrappedStashes.MinigameProbe.Register()
 end
 

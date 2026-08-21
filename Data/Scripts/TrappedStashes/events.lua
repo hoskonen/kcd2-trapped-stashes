@@ -5,7 +5,6 @@ local Events = TrappedStashes.Events
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
 local TrapSequence = TrappedStashes.TrapSequence
-local NoLockpickAudit = TrappedStashes.NoLockpickAudit
 
 Events._nodes = Events._nodes or {}
 Events._connections = Events._connections or {}
@@ -185,10 +184,6 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnFailed", function(...)
         local session = Session.RecordBroken("OnFailed")
-        if NoLockpickAudit and
-                type(NoLockpickAudit.ObserveResult) == "function" then
-            NoLockpickAudit.ObserveResult("failed", session)
-        end
         Debug.Log("lockpick-broken count=" .. tostring(session.breakCount) ..
             " session=" .. tostring(session.id) ..
             " startKnown=" .. tostring(session.startKnown) ..
@@ -202,10 +197,6 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnLockpicked", function(...)
         local session = Session.EnsureFromResult("OnLockpicked")
-        if NoLockpickAudit and
-                type(NoLockpickAudit.ObserveResult) == "function" then
-            NoLockpickAudit.ObserveResult("lockpicked", session)
-        end
         Debug.Log("lockpick-success breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..
@@ -220,10 +211,6 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnInterrupted", function(...)
         local session = Session.EnsureFromResult("OnInterrupted")
-        if NoLockpickAudit and
-                type(NoLockpickAudit.ObserveResult) == "function" then
-            NoLockpickAudit.ObserveResult("interrupted", session)
-        end
         Debug.Log("lockpick-interrupted breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..

@@ -42,18 +42,13 @@ TrappedStashes.Config = {
     },
 
     diagnostics = {
-        interactionProbe = true,
-        interactionDumpDepth = 2,
-        interactionDumpKeys = 16,
-        interactionDumpLines = 80,
         minigameProbe = true,
         minigameEntityStatePoll = true,
         minigamePollMs = 250,
+        minigameDumpNative = false,
         minigameDumpDepth = 1,
         minigameDumpKeys = 32,
         minigameDumpLines = 80,
-        noLockpickAudit = true,
-        noLockpickAuditSummaryMs = 1000,
     },
 }
 
