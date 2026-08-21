@@ -4,6 +4,7 @@ TrappedStashes.MinigameProbe = TrappedStashes.MinigameProbe or {}
 local Probe = TrappedStashes.MinigameProbe
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
+local Target = TrappedStashes.LockpickTarget
 
 Probe._active = Probe._active or false
 Probe._targetId = Probe._targetId or nil
@@ -76,16 +77,46 @@ local function getTargetNUserId(targetId)
     return entityOrError.nUserId, nil
 end
 
+local function sampleDelayMs()
+    return tonumber(cfg().minigameStateSampleMs) or 100
+end
+
+local function logLifecycleState(phase, targetId)
+    if Target and type(Target.LogLifecycleState) == "function" then
+        return Target.LogLifecycleState(phase, targetId)
+    end
+
+    Debug.Log("lockpick-lifecycle-state phase=" .. tostring(phase) ..
+        " targetId=" .. tostring(targetId) ..
+        " error=LockpickTarget-unavailable")
+    return nil
+end
+
+local function scheduleLifecycleSample(phase, targetId)
+    if targetId == nil or type(Script) ~= "table" or
+            type(Script.SetTimer) ~= "function" then
+        return
+    end
+
+    Script.SetTimer(sampleDelayMs(), function()
+        logLifecycleState(phase, targetId)
+    end)
+end
+
 local function markInactive(source, detail)
+    local targetId = Probe._targetId
     if not Probe._active then
         Debug.Trace("minigame-probe inactive-event source=" ..
             tostring(source) .. " detail=" .. tostring(detail))
+        scheduleLifecycleSample(source .. "+sample", targetId)
         return
     end
 
     Debug.Log("minigame-probe state active->inactive source=" ..
-        tostring(source) .. " targetId=" .. tostring(Probe._targetId) ..
+            tostring(source) .. " targetId=" .. tostring(targetId) ..
         " detail=" .. tostring(detail))
+    logLifecycleState(source, targetId)
+    scheduleLifecycleSample(source .. "+sample", targetId)
 
     Probe._active = false
     Probe._targetId = nil
@@ -148,6 +179,8 @@ end
 local function markActive(source, targetId, detail)
     Probe._startCount = Probe._startCount + 1
     local session = Session.BeginFromStart(targetId, source)
+    logLifecycleState(source, targetId)
+    scheduleLifecycleSample(source .. "+sample", targetId)
 
     if Probe._active then
         Debug.Log("minigame-probe state active->active source=" ..

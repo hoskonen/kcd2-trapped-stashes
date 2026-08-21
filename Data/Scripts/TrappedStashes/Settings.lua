@@ -32,9 +32,19 @@ local function normalizeMs(value, minValue, maxValue)
     return math.floor(number + 0.5)
 end
 
+local function normalizeSeconds(value, minValue, maxValue)
+    local number = tonumber(value)
+    if number == nil then return nil end
+    minValue = tonumber(minValue) or 0
+    maxValue = tonumber(maxValue) or 60
+    if number < minValue or number > maxValue then return nil end
+    return math.floor((number * 10) + 0.5) / 10
+end
+
 local function ensureShape(config)
     config.effects = config.effects or {}
     config.trapSequence = config.trapSequence or {}
+    config.timedLockTrap = config.timedLockTrap or {}
     config.diagnostics = config.diagnostics or {}
     config.trapDeathAudio = config.trapDeathAudio or {}
     TrappedStashes.cfg = config
@@ -77,6 +87,8 @@ local function readRecord(db)
 
     local effects = type(value.effects) == "table" and value.effects or {}
     local trapSequence = type(value.trapSequence) == "table" and value.trapSequence or {}
+    local timedLockTrap = type(value.timedLockTrap) == "table" and
+        value.timedLockTrap or {}
     local diagnostics = type(value.diagnostics) == "table" and value.diagnostics or {}
 
     return {
@@ -90,6 +102,13 @@ local function readRecord(db)
         trapSequence = {
             soundAtMs = normalizeMs(trapSequence.soundAtMs, 0, 10000),
             gameOverAtMs = normalizeMs(trapSequence.gameOverAtMs, 0, 30000),
+        },
+        timedLockTrap = {
+            enabled = normalizeBoolean(timedLockTrap.enabled),
+            minFuseSeconds =
+                normalizeSeconds(timedLockTrap.minFuseSeconds, 1, 30),
+            maxFuseSeconds =
+                normalizeSeconds(timedLockTrap.maxFuseSeconds, 1, 30),
         },
         debug = normalizeBoolean(value.debug),
         diagnostics = {
@@ -111,6 +130,13 @@ local function buildRecord(config)
         trapSequence = {
             soundAtMs = normalizeMs(config.trapSequence.soundAtMs, 0, 10000) or 250,
             gameOverAtMs = normalizeMs(config.trapSequence.gameOverAtMs, 0, 30000) or 1250,
+        },
+        timedLockTrap = {
+            enabled = config.timedLockTrap.enabled == true and 1 or 0,
+            minFuseSeconds =
+                normalizeSeconds(config.timedLockTrap.minFuseSeconds, 1, 30) or 8,
+            maxFuseSeconds =
+                normalizeSeconds(config.timedLockTrap.maxFuseSeconds, 1, 30) or 14,
         },
         debug = config.debug == true and 1 or 0,
         diagnostics = {
@@ -142,6 +168,20 @@ local function applyRecord(config, record)
         end
     end
 
+    if record.timedLockTrap then
+        if record.timedLockTrap.enabled ~= nil then
+            config.timedLockTrap.enabled = record.timedLockTrap.enabled
+        end
+        if record.timedLockTrap.minFuseSeconds ~= nil then
+            config.timedLockTrap.minFuseSeconds =
+                record.timedLockTrap.minFuseSeconds
+        end
+        if record.timedLockTrap.maxFuseSeconds ~= nil then
+            config.timedLockTrap.maxFuseSeconds =
+                record.timedLockTrap.maxFuseSeconds
+        end
+    end
+
     if record.debug ~= nil then config.debug = record.debug end
     if record.diagnostics and record.diagnostics.minigameDumpNative ~= nil then
         config.diagnostics.minigameDumpNative =
@@ -157,6 +197,11 @@ local function recordMatchesConfig(record, config)
         and record.effects.blur == (config.effects.blur ~= false)
         and record.trapSequence.soundAtMs == config.trapSequence.soundAtMs
         and record.trapSequence.gameOverAtMs == config.trapSequence.gameOverAtMs
+        and record.timedLockTrap.enabled == config.timedLockTrap.enabled
+        and record.timedLockTrap.minFuseSeconds ==
+            normalizeSeconds(config.timedLockTrap.minFuseSeconds, 1, 30)
+        and record.timedLockTrap.maxFuseSeconds ==
+            normalizeSeconds(config.timedLockTrap.maxFuseSeconds, 1, 30)
         and record.debug == config.debug
         and record.diagnostics.minigameDumpNative ==
             config.diagnostics.minigameDumpNative
@@ -296,6 +341,34 @@ function Settings.SetTrapTiming(name, value, source, persist)
     config.trapSequence[name] = ms
     markSessionChanged()
     log("timing " .. tostring(name) .. "=" .. tostring(ms) ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetTimedFuseEnabled(enabled, source, persist)
+    local config = ensureShape(TrappedStashes.Config)
+    config.timedLockTrap.enabled = enabled == true
+    markSessionChanged()
+    log("timedLockTrap enabled=" ..
+        tostring(config.timedLockTrap.enabled) ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetTimedFuseSeconds(name, value, source, persist)
+    local config = ensureShape(TrappedStashes.Config)
+    if name ~= "minFuseSeconds" and name ~= "maxFuseSeconds" then
+        return false, "unknown fuse timing"
+    end
+
+    local seconds = normalizeSeconds(value, 1, 30)
+    if seconds == nil then return false, "invalid seconds" end
+
+    config.timedLockTrap[name] = seconds
+    markSessionChanged()
+    log("timedLockTrap " .. tostring(name) .. "=" .. tostring(seconds) ..
         " source=" .. tostring(source or "settings"))
     if persist then return Settings.SaveAll(config) end
     return true, nil

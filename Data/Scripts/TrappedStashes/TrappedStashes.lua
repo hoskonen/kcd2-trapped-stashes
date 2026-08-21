@@ -16,6 +16,7 @@ Script.ReloadScript("Scripts/TrappedStashes/Events.lua")
 Script.ReloadScript("Scripts/TrappedStashes/ModMenu.lua")
 Script.ReloadScript("Scripts/TrappedStashes/DebugCommands.lua")
 Script.ReloadScript("Scripts/TrappedStashes/MinigameProbe.lua")
+Script.ReloadScript("Scripts/TrappedStashes/LockpickInputProbe.lua")
 
 function TrappedStashes.OnGameplayStarted()
     if TrappedStashes.Settings and TrappedStashes.Settings.Initialize then
@@ -32,12 +33,14 @@ function TrappedStashes.OnGameplayStarted()
 
     TrappedStashes.Events.Reset("OnGameplayStarted")
     TrappedStashes.MinigameProbe.Reset("OnGameplayStarted")
+    TrappedStashes.LockpickInputProbe.Reset("OnGameplayStarted")
     TrappedStashes.TrapSequence.Reset("OnGameplayStarted")
     TrappedStashes.TrapEffects.Reset("OnGameplayStarted")
     TrappedStashes.Debug.Log("Initialized")
     TrappedStashes.Commands.Register()
     TrappedStashes.Events.RegisterLockpicking()
     TrappedStashes.MinigameProbe.Register()
+    TrappedStashes.LockpickInputProbe.Register()
 end
 
 function TrappedStashes.BindLifecycleEvents(maxTries, delayMs)

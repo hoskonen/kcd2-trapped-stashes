@@ -14,14 +14,17 @@ filenames:
 - `ModMenu.lua` is the optional MCM adapter. The mod still runs without MCM.
 - `MinigameProbe.lua` wraps `Minigame.StartLockPicking` to create lockpick
   sessions from the exact target passed by the game.
+- `LockpickInputProbe.lua` observes the proven `lock_dir_fwd` press signal and
+  starts the hidden timed trap fuse for eligible sessions.
 - `LockpickTarget.lua` resolves target metadata, including stash fields and
   lock difficulty diagnostics.
 - `Eligibility.lua` builds and evaluates the production trap eligibility
   context.
 - `LockpickSession.lua` owns the current lockpick session and once-per-session
-  trap trigger flag.
-- `Events.lua` binds `LockpickingResultTrigger` outcomes and starts the trap
-  sequence on eligible failure.
+  trap/fuse state.
+- `Events.lua` binds `LockpickingResultTrigger` outcomes. Lockpick failure
+  triggers an eligible trap immediately; success and interruption cancel any
+  active fuse.
 - `TrapSequence.lua` schedules the deterministic trap timeline.
 - `TrapEffects.lua` applies presentation effects such as arrow sound and
   blood/visual buff experiments.
@@ -41,6 +44,19 @@ Development-only MCM categories are controlled by the source flag
 `devToggles` in `Config.lua`. Set `devToggles = false` for release builds to
 omit developer controls entirely. The `devToggles` flag is not persisted and is
 not exposed in MCM.
+
+`timedLockTrap` controls the hidden fuse started by the first real lock-turning
+input. `minFuseSeconds` and `maxFuseSeconds` are persisted through LuaDB/MCM and
+can be tuned independently of the presentation delays in `trapSequence`.
+
+Future research may replace the wall-clock fuse with active-turn-only timing,
+but the current implementation intentionally uses one randomized timer from the
+first `lock_dir_fwd` press.
+
+For future active-turn-only countdown work, `lock_dir_fwd` exposes both `press`
+and `release` transitions during a single lockpick session. A disabled-by-default
+developer diagnostic can log those transitions without changing the production
+fuse, which still starts only on the first press.
 
 ## Debug Commands
 

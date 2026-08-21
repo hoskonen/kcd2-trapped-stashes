@@ -4,7 +4,7 @@ TrappedStashes.Events = TrappedStashes.Events or {}
 local Events = TrappedStashes.Events
 local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
-local TrapSequence = TrappedStashes.TrapSequence
+local Target = TrappedStashes.LockpickTarget
 
 Events._nodes = Events._nodes or {}
 Events._connections = Events._connections or {}
@@ -108,34 +108,6 @@ local function lockpickableEntityText(node)
     return Debug.Handle(valueOrError)
 end
 
-local function startTrapSequence(session)
-    local config = TrappedStashes.Config.trapSequence or {}
-    if config.enabled ~= true then
-        return
-    end
-    if session == nil or session.eligibility == nil or
-            session.eligibility.eligible ~= true then
-        local reasons = session and session.eligibility and
-            session.eligibility.reasons or nil
-        Debug.Log("trap-sequence skipped session=" ..
-            tostring(session and session.id) ..
-            " reason=not-eligible targetCategory=" ..
-            tostring(session and session.targetCategory) ..
-            " targetId=" .. tostring(session and session.targetId) ..
-            " eligibilityReasons=" ..
-            tostring(reasons and table.concat(reasons, ",") or "nil"))
-        return
-    end
-
-    if TrapSequence == nil or type(TrapSequence.Start) ~= "function" then
-        Debug.Log("ERROR trap-sequence unavailable session=" ..
-            tostring(session and session.id))
-        return
-    end
-
-    TrapSequence.Start(session)
-end
-
 local function sessionTargetText(session)
     if session == nil then
         return " targetCategory=nil targetId=nil"
@@ -143,6 +115,41 @@ local function sessionTargetText(session)
 
     return " targetCategory=" .. tostring(session.targetCategory) ..
         " targetId=" .. tostring(session.targetId)
+end
+
+local function targetIdFromSession(session)
+    if session and session.targetId ~= nil then
+        return session.targetId
+    end
+    return nil
+end
+
+local function logLifecycleState(phase, session)
+    if Target and type(Target.LogLifecycleState) == "function" then
+        return Target.LogLifecycleState(phase, targetIdFromSession(session))
+    end
+
+    Debug.Log("lockpick-lifecycle-state phase=" .. tostring(phase) ..
+        " targetId=" .. tostring(targetIdFromSession(session)) ..
+        " error=LockpickTarget-unavailable")
+    return nil
+end
+
+local function scheduleLifecycleSample(phase, session)
+    local targetId = targetIdFromSession(session)
+    if targetId == nil or type(Script) ~= "table" or
+            type(Script.SetTimer) ~= "function" then
+        return
+    end
+
+    local diagnostics = TrappedStashes.Config and
+        TrappedStashes.Config.diagnostics or {}
+    local delayMs = tonumber(diagnostics.minigameStateSampleMs) or 100
+    Script.SetTimer(delayMs, function()
+        if Target and type(Target.LogLifecycleState) == "function" then
+            Target.LogLifecycleState(phase, targetId)
+        end
+    end)
 end
 
 function Events.Reset(reason)
@@ -184,19 +191,22 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnFailed", function(...)
         local session = Session.RecordBroken("OnFailed")
+        logLifecycleState("OnFailed", session)
         Debug.Log("lockpick-broken count=" .. tostring(session.breakCount) ..
             " session=" .. tostring(session.id) ..
             " startKnown=" .. tostring(session.startKnown) ..
             sessionTargetText(session) ..
             " native=OnFailed args=" .. tostring(argCount(...)) ..
             " lockpickable=" .. lockpickableEntityText(node))
-        startTrapSequence(session)
+        Session.TriggerTrap("lockpick_failed")
+        scheduleLifecycleSample("OnFailed+sample", session)
     end) then
         bound = bound + 1
     end
 
     if bindTrigger(node, "OnLockpicked", function(...)
         local session = Session.EnsureFromResult("OnLockpicked")
+        logLifecycleState("OnLockpicked", session)
         Debug.Log("lockpick-success breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..
@@ -204,6 +214,8 @@ function Events.RegisterLockpicking()
             sessionTargetText(session) ..
             " native=OnLockpicked args=" .. tostring(argCount(...)) ..
             " lockpickable=" .. lockpickableEntityText(node))
+        Session.CancelFuse("success")
+        scheduleLifecycleSample("OnLockpicked+sample", session)
         Session.End("success")
     end) then
         bound = bound + 1
@@ -211,6 +223,7 @@ function Events.RegisterLockpicking()
 
     if bindTrigger(node, "OnInterrupted", function(...)
         local session = Session.EnsureFromResult("OnInterrupted")
+        logLifecycleState("OnInterrupted", session)
         Debug.Log("lockpick-interrupted breakCount=" ..
             tostring(session.breakCount or 0) ..
             " session=" .. tostring(session.id) ..
@@ -218,6 +231,8 @@ function Events.RegisterLockpicking()
             sessionTargetText(session) ..
             " native=OnInterrupted args=" .. tostring(argCount(...)) ..
             " lockpickable=" .. lockpickableEntityText(node))
+        Session.CancelFuse("interrupted")
+        scheduleLifecycleSample("OnInterrupted+sample", session)
         Session.End("interrupted")
     end) then
         bound = bound + 1

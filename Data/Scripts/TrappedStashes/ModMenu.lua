@@ -33,6 +33,15 @@ local function sliderMs(value, minValue, maxValue)
     return math.floor(number + 0.5)
 end
 
+local function sliderSeconds(value, minValue, maxValue)
+    local number = tonumber(value)
+    if number == nil then return nil end
+    minValue = tonumber(minValue) or 0
+    maxValue = tonumber(maxValue) or 60
+    if number < minValue or number > maxValue then return nil end
+    return math.floor((number * 10) + 0.5) / 10
+end
+
 local function uiAssetsAvailable()
     if not (System and type(System.IsFileExist) == "function") then
         return false
@@ -85,6 +94,7 @@ function MM.BuildSettings()
     local config = cfg()
     local effects = config.effects or {}
     local trapSequence = config.trapSequence or {}
+    local timedLockTrap = config.timedLockTrap or {}
     local diagnostics = config.diagnostics or {}
 
     MCM.AddMod(MOD_ID, MOD_NAME)
@@ -150,6 +160,38 @@ function MM.BuildSettings()
 
         MCM.AddCategory(
             MOD_ID,
+            "Timed Lock Trap",
+            "Development controls for the hidden lock-turning fuse."
+        )
+        addToggle(
+            "timed_fuse_enabled",
+            "Timed fuse enabled",
+            "Start a hidden trap fuse when lock turning begins.",
+            timedLockTrap.enabled == true
+        )
+        addSlider(
+            "min_fuse_seconds",
+            "Minimum fuse time",
+            "Shortest randomized fuse duration after lock turning begins.",
+            1,
+            30,
+            0.5,
+            tonumber(timedLockTrap.minFuseSeconds) or 8,
+            " s"
+        )
+        addSlider(
+            "max_fuse_seconds",
+            "Maximum fuse time",
+            "Longest randomized fuse duration after lock turning begins.",
+            1,
+            30,
+            0.5,
+            tonumber(timedLockTrap.maxFuseSeconds) or 14,
+            " s"
+        )
+
+        MCM.AddCategory(
+            MOD_ID,
             "Developer - Diagnostics",
             "Development-only diagnostics and experiments."
         )
@@ -205,6 +247,18 @@ function MM.OnValueChanged(settingId, value)
         local ms = sliderMs(value, 0, 10000)
         if ms == nil then return end
         Settings.SetTrapTiming("gameOverAtMs", ms, "mcm", true)
+    elseif settingId == "timed_fuse_enabled" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetTimedFuseEnabled(enabled, "mcm", true)
+    elseif settingId == "min_fuse_seconds" then
+        local seconds = sliderSeconds(value, 1, 30)
+        if seconds == nil then return end
+        Settings.SetTimedFuseSeconds("minFuseSeconds", seconds, "mcm", true)
+    elseif settingId == "max_fuse_seconds" then
+        local seconds = sliderSeconds(value, 1, 30)
+        if seconds == nil then return end
+        Settings.SetTimedFuseSeconds("maxFuseSeconds", seconds, "mcm", true)
     elseif settingId == "debug" then
         local enabled = toggleValue(value)
         if enabled == nil then return end

@@ -195,6 +195,22 @@ local function readLockMetadata(entity)
     return lock
 end
 
+local function findNamedMethodValue(entity, names)
+    for _, root in ipairs(ROOTS) do
+        local object = readPath(entity, root.path)
+        if object ~= nil then
+            for _, name in ipairs(names) do
+                local value = safeCall(object, name)
+                if value ~= nil then
+                    return value, root.label .. ":" .. name .. "()"
+                end
+            end
+        end
+    end
+
+    return nil, nil
+end
+
 function Target.Resolve(targetId)
     local entity = nil
     local errorText = nil
@@ -241,6 +257,41 @@ function Target.Resolve(targetId)
     end
 
     return snapshot
+end
+
+function Target.DiagnosticSnapshot(targetId)
+    local snapshot = Target.Resolve(targetId)
+    local lock = snapshot.lock or {}
+    local getLockDifficulty, getLockDifficultySource = findNamedMethodValue(
+        snapshot.entity,
+        { "GetLockDifficulty" }
+    )
+
+    if getLockDifficulty == nil then
+        getLockDifficulty = lock.fLockDifficulty
+        getLockDifficultySource = lock.fields and
+            lock.fields.fLockDifficulty and
+            lock.fields.fLockDifficulty.source or nil
+    end
+
+    return {
+        targetId = targetId,
+        nUserId = snapshot.nUserId,
+        bLocked = lock.bLocked,
+        getLockDifficulty = getLockDifficulty,
+        getLockDifficultySource = getLockDifficultySource,
+    }
+end
+
+function Target.LogLifecycleState(phase, targetId)
+    local state = Target.DiagnosticSnapshot(targetId)
+    Debug.Log("lockpick-lifecycle-state phase=" .. valueText(phase) ..
+        " targetId=" .. valueText(state.targetId) ..
+        " nUserId=" .. valueText(state.nUserId) ..
+        " bLocked=" .. valueText(state.bLocked) ..
+        " GetLockDifficulty()=" .. valueText(state.getLockDifficulty) ..
+        " source=" .. valueText(state.getLockDifficultySource))
+    return state
 end
 
 function Target.SummaryLine(snapshot)
