@@ -4,8 +4,10 @@ TrappedStashes.Commands = TrappedStashes.Commands or {}
 local Commands = TrappedStashes.Commands
 local Debug = TrappedStashes.Debug
 local Audio = TrappedStashes.Audio
+local Impact = TrappedStashes.TrapImpact
 
 local DEFAULT_SOUND_PATH = "Libs/Audio/TrappedStashes/crossbow-shot1.wav"
+local COMMAND_SET_VERSION = "impact-v3"
 
 local function trim(value)
     local text = tostring(value or "")
@@ -115,12 +117,48 @@ function Commands.MinigameExitTest()
     return result == true
 end
 
+function Commands.ImpactProbe()
+    if Impact == nil or type(Impact.Probe) ~= "function" then
+        Debug.Log("impact-probe result=false error=impact-module-unavailable")
+        return false
+    end
+
+    return Impact.Probe()
+end
+
+function Commands.ImpactTest(line)
+    if Impact == nil or type(Impact.Test) ~= "function" then
+        Debug.Log("impact-test attempted=true result=false error=impact-module-unavailable")
+        return false
+    end
+
+    return Impact.Test(line)
+end
+
+function Commands.RagdollAuthoredTest()
+    if Impact == nil or type(Impact.TestAuthoredRagdoll) ~= "function" then
+        Debug.Log("ragdoll-authored attempted=true result=false error=impact-module-unavailable")
+        return false
+    end
+
+    return Impact.TestAuthoredRagdoll()
+end
+
+function Commands.BloodScreenTest()
+    if Impact == nil or type(Impact.TestBloodScreen) ~= "function" then
+        Debug.Log("blood-screen-test attempted=true result=false error=impact-module-unavailable")
+        return false
+    end
+
+    return Impact.TestBloodScreen()
+end
+
 local function registerCommand(name, callback, description)
     System.AddCCommand(name, callback, description)
 end
 
 function Commands.Register()
-    if Commands._registered then
+    if Commands._registered and Commands._registeredVersion == COMMAND_SET_VERSION then
         Debug.Trace("commands already-registered")
         return true
     end
@@ -142,7 +180,32 @@ function Commands.Register()
         "Trapped Stashes: request exit from the active minigame"
     )
 
+    registerCommand(
+        "ts_impact_probe",
+        "TrappedStashes.Commands.ImpactProbe()",
+        "Trapped Stashes: probe SKALD player impact action support"
+    )
+
+    registerCommand(
+        "ts_impact_test",
+        "TrappedStashes.Commands.ImpactTest([[%line]])",
+        "Trapped Stashes: test debug-only player impact reaction"
+    )
+
+    registerCommand(
+        "ts_ragdoll_authored",
+        "TrappedStashes.Commands.RagdollAuthoredTest()",
+        "Trapped Stashes: apply the authored ragdoll test buff"
+    )
+
+    registerCommand(
+        "ts_blood_screen_test",
+        "TrappedStashes.Commands.BloodScreenTest()",
+        "Trapped Stashes: apply the custom blood screen test buff"
+    )
+
     Commands._registered = true
-    Debug.Log("commands registered names=ts_sound_file_test,ts_minigame_exit")
+    Commands._registeredVersion = COMMAND_SET_VERSION
+    Debug.Log("commands registered names=ts_sound_file_test,ts_minigame_exit,ts_impact_probe,ts_impact_test,ts_ragdoll_authored,ts_blood_screen_test")
     return true
 end

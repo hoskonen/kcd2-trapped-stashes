@@ -85,7 +85,7 @@
 	</Effect>
 
 	<Effect name="trappedstashes_blood_screen">
-		<FlowGraph name="player_damage" maxdist="0"/>
+		<FlowGraph name="trappedstashes_arrow_bleed" maxdist="0"/>
 	</Effect>
 	
 </FXLib>

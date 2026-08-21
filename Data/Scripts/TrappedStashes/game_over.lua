@@ -4,7 +4,7 @@ TrappedStashes.GameOver = TrappedStashes.GameOver or {}
 local GameOver = TrappedStashes.GameOver
 local Debug = TrappedStashes.Debug
 
-GameOver.TrapReason = "DiedUnknown"
+GameOver.TrapReason = "trappedstashes_gameover_trap1"
 
 function GameOver.Trigger(reason)
     reason = reason or GameOver.TrapReason

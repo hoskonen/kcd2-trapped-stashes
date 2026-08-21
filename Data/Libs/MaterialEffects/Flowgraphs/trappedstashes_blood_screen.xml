@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Graph MultiPlayer="ServerOnly">
+  <Nodes>
+    <Node Id="274" Class="MaterialFX:HUDStartFX" pos="-620,-410,0" flags="0">
+      <Inputs />
+    </Node>
+    <Node Id="292" Class="MaterialFX:HUDEndFX" pos="-220,-250,0" flags="0">
+      <Inputs />
+    </Node>
+    <Node Id="373" Class="Image:ScreenFader" pos="10,-20,0" flags="0">
+      <Inputs FadeGroup="FX:Blood" UseCurColor="0" FadeInTime="0.05" FadeOutTime="0.5" color_FadeColor="1,1,1" tex_TextureName="textures/ui/blood_ui.tif" UpdateAlways="0" FadeAlpha="1" Priority="20" Persistent="0" />
+    </Node>
+  </Nodes>
+  <Edges>
+    <Edge nodeIn="373" nodeOut="274" portIn="FadeAlpha" portOut="Intensity" enabled="1" />
+    <Edge nodeIn="373" nodeOut="274" portIn="FadeIn" portOut="Started" enabled="1" />
+    <Edge nodeIn="373" nodeOut="292" portIn="FadeOut" portOut="Ended" enabled="1" />
+  </Edges>
+</Graph>

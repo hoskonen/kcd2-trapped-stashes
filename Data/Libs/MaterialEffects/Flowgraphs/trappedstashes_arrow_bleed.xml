@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Graph>
+	<Nodes>
+		<Node Id="1" Class="MaterialFX:HUDStartFX" pos="-300,-20,0" flags="0">
+			<Inputs />
+		</Node>
+		<Node Id="28" Class="MaterialFX:HUDEndFX" pos="330,180,0" flags="0">
+			<Inputs />
+		</Node>
+		<Node Id="32" Class="Effects:SpawnParticleEffect" pos="330,-200,0" flags="0">
+			<Inputs t_Activate="0" Position="0,0,0" Effect="collisions.combat.blood_head" />
+		</Node>
+		<Node Id="34" Class="Time:Delay" pos="70,40,0" flags="0">
+			<Inputs delay="0.35" resetOnInput="0" unpausable="0" />
+		</Node>
+		<Node Id="36" Class="Logic:Once" pos="100,-200,0" flags="0">
+			<Inputs />
+		</Node>
+		<Node Id="39" Class="Math:Div" pos="-60,170,0" flags="0">
+			<Inputs A="1" B="0" />
+		</Node>
+		<Node Id="40" Name="trappedstashes_arrow_bleed_loop" Class="_comment" pos="-180,230,0" flags="0" />
+	</Nodes>
+	<Edges>
+		<Edge nodeIn="36" nodeOut="1" portIn="Input1" portOut="Intensity" enabled="1" />
+		<Edge nodeIn="39" nodeOut="1" portIn="B" portOut="Intensity" enabled="1" />
+		<Edge nodeIn="36" nodeOut="34" portIn="Reset" portOut="out" enabled="1" />
+		<Edge nodeIn="32" nodeOut="36" portIn="t_Activate" portOut="out" enabled="1" />
+		<Edge nodeIn="34" nodeOut="36" portIn="in" portOut="Out" enabled="1" />
+		<Edge nodeIn="34" nodeOut="39" portIn="delay" portOut="out" enabled="1" />
+	</Edges>
+</Graph>

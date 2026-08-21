@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="brambora">
+  <Skald>
+    <Module Name="ragdoll_authored">
+      <Nodes>
+        <State Name="state1" PositionY="-150" PositionX="-190" TypeT="bool">
+          <Constant Name="DefaultValue" Value="true" />
+          <Constant Name="Value" Value="true" />
+        </State>
+        <MakeArray Name="makearray1" PositionY="170" PositionX="-140" TypeT="wh::rpgmodule::BuffDefinitionAITags">
+          <Constant Name="A" Value="910025" />
+        </MakeArray>
+        <BuffTagTrigger Name="bufftagtrigger1" PositionY="-70" PositionX="160">
+          <Asset Name="Souls" Alias="player" />
+          <Edge From="makearray1.Array" To="BuffTags" />
+          <Edge From="state1.State" To="IsActive" />
+        </BuffTagTrigger>
+        <PlayerAnimationAction Name="playeranimationaction1" PositionY="-140" PositionX="470" Namespace="utils.player">
+          <Constant Name="fragment" Value="HitDeath" />
+          <Constant Name="tags" Value="ragdoll" />
+          <Asset Name="alignobject" Alias="player" />
+          <Constant Name="savelock" Value="false" />
+          <Constant Name="allowtorch" Value="false" />
+          <Constant Name="disablefocuscamera" Value="true" />
+          <Edge From="bufftagtrigger1.OnAdded" To="startanimation" />
+        </PlayerAnimationAction>
+      </Nodes>
+      <Text Text="Trapped Stashes Ragdoll Test" />
+    </Module>
+  </Skald>
+</Database>
