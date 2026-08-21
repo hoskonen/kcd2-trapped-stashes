@@ -22,6 +22,10 @@ local function timedConfig()
     return (TrappedStashes.Config and TrappedStashes.Config.timedLockTrap) or {}
 end
 
+local function triggerConfig()
+    return (TrappedStashes.Config and TrappedStashes.Config.trapTriggers) or {}
+end
+
 local function modEnabled()
     return not (TrappedStashes.Config and TrappedStashes.Config.enabled == false)
 end
@@ -132,6 +136,8 @@ function Session.BeginFromStart(targetId, nativeEvent)
         fuseDuration = nil,
         fuseGeneration = nil,
         trapTriggered = false,
+        turnStarted = false,
+        resolved = false,
     }
 
     TrappedStashes.Debug.Log("lockpick-session-start session=" ..
@@ -164,6 +170,8 @@ function Session.EnsureFromResult(nativeEvent)
             fuseDuration = nil,
             fuseGeneration = nil,
             trapTriggered = false,
+            turnStarted = false,
+            resolved = false,
         }
     end
 
@@ -212,6 +220,7 @@ end
 function Session.StartFuseFromTurnInput()
     local session = Session.current
     if not modEnabled() or session == nil then return false, "inactive" end
+    session.turnStarted = true
     if timedConfig().enabled ~= true then return false, "disabled" end
     if session.armed ~= true or not isEligible(session) then
         return false, "not-armed"
@@ -239,10 +248,30 @@ function Session.StartFuseFromTurnInput()
     return true, nil
 end
 
+function Session.TriggerFromTurnRelease()
+    local session = Session.current
+    if triggerConfig().onTurnRelease ~= true then
+        return false, "disabled"
+    end
+    if not modEnabled() then return false, "mod-disabled" end
+    if session == nil then return false, "no-session" end
+    if session.resolved == true then return false, "resolved" end
+    if session.turnStarted ~= true then return false, "turn-not-started" end
+    if session.trapTriggered == true then return false, "already-triggered" end
+    if not isEligible(session) then return false, "not-eligible" end
+
+    return Session.TriggerTrap("turn_released")
+end
+
+function Session.ShouldTriggerOnLockpickBreak()
+    return triggerConfig().onLockpickBreak ~= false
+end
+
 function Session.TriggerTrap(reason)
     local session = Session.current
     if not modEnabled() then return false, "mod-disabled" end
     if session == nil then return false, "no-session" end
+    if session.resolved == true then return false, "resolved" end
     if session.trapTriggered == true then return false, "already-triggered" end
     if not isEligible(session) then return false, "not-eligible" end
 
@@ -262,6 +291,9 @@ end
 
 function Session.End(reason)
     local session = Session.current
+    if session ~= nil then
+        session.resolved = true
+    end
     Session.current = nil
     Session._fuseGeneration = Session._fuseGeneration + 1
     return session, reason

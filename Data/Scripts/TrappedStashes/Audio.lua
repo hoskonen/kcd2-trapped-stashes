@@ -209,6 +209,10 @@ function Audio.PlayArrowTrapSound(_session)
         return false, "disabled"
     end
 
-    Debug.Trace("audio arrow-trap begin path=" .. soundPath(config.path))
-    return Audio.PlaySoundFile(config.path)
+    local profile = _session and _session.trapAudioProfile or nil
+    local path = profile and profile.file or config.path
+    Debug.Trace("audio arrow-trap begin type=" ..
+        tostring(profile and profile.type or "default") ..
+        " path=" .. soundPath(path))
+    return Audio.PlaySoundFile(path)
 end

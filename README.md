@@ -16,6 +16,8 @@ filenames:
   sessions from the exact target passed by the game.
 - `LockpickInputProbe.lua` observes the proven `lock_dir_fwd` press signal and
   starts the hidden timed trap fuse for eligible sessions.
+- `TrapAudioProfiles.lua` selects one source-defined audio profile per
+  triggered trap and keeps it stable for the sequence.
 - `LockpickTarget.lua` resolves target metadata, including stash fields and
   lock difficulty diagnostics.
 - `Eligibility.lua` builds and evaluates the production trap eligibility
@@ -48,6 +50,21 @@ not exposed in MCM.
 `timedLockTrap` controls the hidden fuse started by the first real lock-turning
 input. `minFuseSeconds` and `maxFuseSeconds` are persisted through LuaDB/MCM and
 can be tuned independently of the presentation delays in `trapSequence`.
+
+`trapAudio` contains source-defined audio profiles. Each profile has an id/type,
+one or more files, an enabled flag, `impactDelayMs`, and optional
+`gameOverDelayMs`. When a trap fires the mod selects one enabled profile and one
+file from that profile once, starts that audio, then applies impact effects and
+GameOver using that profile's timing. MCM can toggle random profile selection
+and force a single profile for testing, but profile paths remain source
+configuration.
+
+The older global trap sequence timings remain internal fallbacks only. Current
+developer tuning should use the Crossbow Trap and Pistole Trap profile timings.
+
+`trapTriggers` controls developer gameplay experiments. Lockpick-break traps are
+enabled by default. Turn-release traps are disabled by default and only fire
+after lock turning has already begun.
 
 Future research may replace the wall-clock fuse with active-turn-only timing,
 but the current implementation intentionally uses one randomized timer from the

@@ -44,11 +44,87 @@ end
 local function ensureShape(config)
     config.effects = config.effects or {}
     config.trapSequence = config.trapSequence or {}
+    config.trapAudio = config.trapAudio or {}
+    config.trapTriggers = config.trapTriggers or {}
     config.timedLockTrap = config.timedLockTrap or {}
     config.diagnostics = config.diagnostics or {}
     config.trapDeathAudio = config.trapDeathAudio or {}
     TrappedStashes.cfg = config
     return config
+end
+
+local function normalizeProfileId(value)
+    if type(value) == "string" and value ~= "" then
+        return value
+    end
+    return nil
+end
+
+local function profileById(config, profileId)
+    ensureShape(config)
+    local profiles = config.trapAudio.profiles
+    if type(profiles) ~= "table" then return nil end
+
+    for _, profile in ipairs(profiles) do
+        if type(profile) == "table" and profile.id == profileId then
+            return profile
+        end
+    end
+    return nil
+end
+
+local function buildProfileTimingRecord(config)
+    local result = {}
+    local profiles = ensureShape(config).trapAudio.profiles
+    if type(profiles) ~= "table" then return result end
+
+    for _, profile in ipairs(profiles) do
+        if type(profile) == "table" and type(profile.id) == "string" then
+            result[profile.id] = {
+                impactDelayMs =
+                    normalizeMs(profile.impactDelayMs, 0, 30000),
+                gameOverDelayMs =
+                    normalizeMs(profile.gameOverDelayMs, 0, 30000),
+            }
+        end
+    end
+    return result
+end
+
+local function applyProfileTimings(config, timings)
+    if type(timings) ~= "table" then return end
+
+    for profileId, timing in pairs(timings) do
+        local profile = profileById(config, profileId)
+        if profile ~= nil and type(timing) == "table" then
+            local impactDelayMs =
+                normalizeMs(timing.impactDelayMs, 0, 30000)
+            if impactDelayMs ~= nil then
+                profile.impactDelayMs = impactDelayMs
+            end
+
+            local gameOverDelayMs =
+                normalizeMs(timing.gameOverDelayMs, 0, 30000)
+            if gameOverDelayMs ~= nil then
+                profile.gameOverDelayMs = gameOverDelayMs
+            end
+        end
+    end
+end
+
+local function profileTimingsMatch(recordTimings, config)
+    local current = buildProfileTimingRecord(config)
+    recordTimings = type(recordTimings) == "table" and recordTimings or {}
+
+    for profileId, timing in pairs(current) do
+        local saved = recordTimings[profileId] or {}
+        if saved.impactDelayMs ~= timing.impactDelayMs or
+                saved.gameOverDelayMs ~= timing.gameOverDelayMs then
+            return false
+        end
+    end
+
+    return true
 end
 
 local function ensureDB()
@@ -87,6 +163,9 @@ local function readRecord(db)
 
     local effects = type(value.effects) == "table" and value.effects or {}
     local trapSequence = type(value.trapSequence) == "table" and value.trapSequence or {}
+    local trapAudio = type(value.trapAudio) == "table" and value.trapAudio or {}
+    local trapTriggers = type(value.trapTriggers) == "table" and
+        value.trapTriggers or {}
     local timedLockTrap = type(value.timedLockTrap) == "table" and
         value.timedLockTrap or {}
     local diagnostics = type(value.diagnostics) == "table" and value.diagnostics or {}
@@ -102,6 +181,17 @@ local function readRecord(db)
         trapSequence = {
             soundAtMs = normalizeMs(trapSequence.soundAtMs, 0, 10000),
             gameOverAtMs = normalizeMs(trapSequence.gameOverAtMs, 0, 30000),
+        },
+        trapAudio = {
+            randomEnabled = normalizeBoolean(trapAudio.randomEnabled),
+            forcedProfile = normalizeProfileId(trapAudio.forcedProfile),
+            profileTimings =
+                type(trapAudio.profileTimings) == "table" and
+                trapAudio.profileTimings or {},
+        },
+        trapTriggers = {
+            onLockpickBreak = normalizeBoolean(trapTriggers.onLockpickBreak),
+            onTurnRelease = normalizeBoolean(trapTriggers.onTurnRelease),
         },
         timedLockTrap = {
             enabled = normalizeBoolean(timedLockTrap.enabled),
@@ -130,6 +220,17 @@ local function buildRecord(config)
         trapSequence = {
             soundAtMs = normalizeMs(config.trapSequence.soundAtMs, 0, 10000) or 250,
             gameOverAtMs = normalizeMs(config.trapSequence.gameOverAtMs, 0, 30000) or 1250,
+        },
+        trapAudio = {
+            randomEnabled = config.trapAudio.randomEnabled ~= false and 1 or 0,
+            forcedProfile = normalizeProfileId(config.trapAudio.forcedProfile),
+            profileTimings = buildProfileTimingRecord(config),
+        },
+        trapTriggers = {
+            onLockpickBreak =
+                config.trapTriggers.onLockpickBreak ~= false and 1 or 0,
+            onTurnRelease =
+                config.trapTriggers.onTurnRelease == true and 1 or 0,
         },
         timedLockTrap = {
             enabled = config.timedLockTrap.enabled == true and 1 or 0,
@@ -168,6 +269,26 @@ local function applyRecord(config, record)
         end
     end
 
+    if record.trapAudio then
+        if record.trapAudio.randomEnabled ~= nil then
+            config.trapAudio.randomEnabled = record.trapAudio.randomEnabled
+        end
+        config.trapAudio.forcedProfile =
+            normalizeProfileId(record.trapAudio.forcedProfile)
+        applyProfileTimings(config, record.trapAudio.profileTimings)
+    end
+
+    if record.trapTriggers then
+        if record.trapTriggers.onLockpickBreak ~= nil then
+            config.trapTriggers.onLockpickBreak =
+                record.trapTriggers.onLockpickBreak
+        end
+        if record.trapTriggers.onTurnRelease ~= nil then
+            config.trapTriggers.onTurnRelease =
+                record.trapTriggers.onTurnRelease
+        end
+    end
+
     if record.timedLockTrap then
         if record.timedLockTrap.enabled ~= nil then
             config.timedLockTrap.enabled = record.timedLockTrap.enabled
@@ -197,6 +318,15 @@ local function recordMatchesConfig(record, config)
         and record.effects.blur == (config.effects.blur ~= false)
         and record.trapSequence.soundAtMs == config.trapSequence.soundAtMs
         and record.trapSequence.gameOverAtMs == config.trapSequence.gameOverAtMs
+        and record.trapAudio.randomEnabled ==
+            (config.trapAudio.randomEnabled ~= false)
+        and record.trapAudio.forcedProfile ==
+            normalizeProfileId(config.trapAudio.forcedProfile)
+        and profileTimingsMatch(record.trapAudio.profileTimings, config)
+        and record.trapTriggers.onLockpickBreak ==
+            (config.trapTriggers.onLockpickBreak ~= false)
+        and record.trapTriggers.onTurnRelease ==
+            (config.trapTriggers.onTurnRelease == true)
         and record.timedLockTrap.enabled == config.timedLockTrap.enabled
         and record.timedLockTrap.minFuseSeconds ==
             normalizeSeconds(config.timedLockTrap.minFuseSeconds, 1, 30)
@@ -369,6 +499,69 @@ function Settings.SetTimedFuseSeconds(name, value, source, persist)
     config.timedLockTrap[name] = seconds
     markSessionChanged()
     log("timedLockTrap " .. tostring(name) .. "=" .. tostring(seconds) ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetRandomTrapAudioEnabled(enabled, source, persist)
+    local config = ensureShape(TrappedStashes.Config)
+    config.trapAudio.randomEnabled = enabled == true
+    markSessionChanged()
+    log("trapAudio randomEnabled=" ..
+        tostring(config.trapAudio.randomEnabled) ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetForcedTrapAudioProfile(profileId, source, persist)
+    local config = ensureShape(TrappedStashes.Config)
+    profileId = normalizeProfileId(profileId)
+    if profileId ~= nil and profileById(config, profileId) == nil then
+        return false, "unknown profile"
+    end
+
+    config.trapAudio.forcedProfile = profileId
+    markSessionChanged()
+    log("trapAudio forcedProfile=" ..
+        tostring(config.trapAudio.forcedProfile or "any") ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetTrapAudioProfileTiming(profileId, name, value, source,
+        persist)
+    local config = ensureShape(TrappedStashes.Config)
+    local profile = profileById(config, profileId)
+    if profile == nil then return false, "unknown profile" end
+    if name ~= "impactDelayMs" and name ~= "gameOverDelayMs" then
+        return false, "unknown profile timing"
+    end
+
+    local ms = normalizeMs(value, 0, 30000)
+    if ms == nil then return false, "invalid milliseconds" end
+
+    profile[name] = ms
+    markSessionChanged()
+    log("trapAudio profile=" .. tostring(profileId) ..
+        " " .. tostring(name) .. "=" .. tostring(ms) ..
+        " source=" .. tostring(source or "settings"))
+    if persist then return Settings.SaveAll(config) end
+    return true, nil
+end
+
+function Settings.SetTrapTriggerEnabled(name, enabled, source, persist)
+    local config = ensureShape(TrappedStashes.Config)
+    if name ~= "onLockpickBreak" and name ~= "onTurnRelease" then
+        return false, "unknown trap trigger"
+    end
+
+    config.trapTriggers[name] = enabled == true
+    markSessionChanged()
+    log("trapTrigger " .. tostring(name) .. "=" ..
+        tostring(config.trapTriggers[name]) ..
         " source=" .. tostring(source or "settings"))
     if persist then return Settings.SaveAll(config) end
     return true, nil

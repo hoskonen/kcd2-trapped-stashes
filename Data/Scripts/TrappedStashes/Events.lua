@@ -198,7 +198,12 @@ function Events.RegisterLockpicking()
             sessionTargetText(session) ..
             " native=OnFailed args=" .. tostring(argCount(...)) ..
             " lockpickable=" .. lockpickableEntityText(node))
-        Session.TriggerTrap("lockpick_failed")
+        if Session.ShouldTriggerOnLockpickBreak() then
+            Session.TriggerTrap("lockpick_failed")
+        else
+            Session.CancelFuse("failed")
+            Session.End("failed")
+        end
         scheduleLifecycleSample("OnFailed+sample", session)
     end) then
         bound = bound + 1

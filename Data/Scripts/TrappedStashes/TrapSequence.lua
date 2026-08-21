@@ -6,6 +6,7 @@ local Debug = TrappedStashes.Debug
 local Session = TrappedStashes.LockpickSession
 local GameOver = TrappedStashes.GameOver
 local TrapEffects = TrappedStashes.TrapEffects
+local TrapAudioProfiles = TrappedStashes.TrapAudioProfiles
 
 TrapSequence._generation = tonumber(TrapSequence._generation) or 0
 
@@ -143,54 +144,77 @@ function TrapSequence.Start(session)
         return false, "already-triggered"
     end
 
+    local audioProfile = nil
+    if TrapAudioProfiles and
+            type(TrapAudioProfiles.SelectForSession) == "function" then
+        audioProfile = TrapAudioProfiles.SelectForSession(session)
+    end
+
     requestLockpickExit(session)
 
     TrapSequence._generation = TrapSequence._generation + 1
     local generation = TrapSequence._generation
     local sessionId = session.id
-    local soundAtMs = ms(config.soundAtMs, 250)
-    local gameOverAtMs = ms(config.gameOverAtMs, 1250)
+    local impactDelayMs = ms(
+        audioProfile and audioProfile.impactDelayMs,
+        ms(config.soundAtMs, 250)
+    )
+    local gameOverAtMs = ms(
+        audioProfile and audioProfile.gameOverDelayMs,
+        ms(config.gameOverAtMs, 1250)
+    )
 
     Debug.Log("trap-sequence start session=" .. tostring(sessionId) ..
-        " soundAtMs=" .. tostring(soundAtMs) ..
+        " impactDelayMs=" .. tostring(impactDelayMs) ..
         " gameOverAtMs=" .. tostring(gameOverAtMs) ..
         " gameOverEnabled=" .. tostring(config.gameOverEnabled ~= false))
 
-    if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
-        TrapEffects.ApplyBloodEffect(sessionId)
-    end
-    if TrapEffects and type(TrapEffects.ApplyBuffExperiment) == "function" then
-        TrapEffects.ApplyBuffExperiment(sessionId)
-    end
-    if TrapEffects and type(TrapEffects.ApplyRagdollEffect) == "function" then
-        TrapEffects.ApplyRagdollEffect(sessionId)
-    end
-
-    if gameOverAtMs < soundAtMs then
-        Debug.Log("trap-sequence config gameOverBeforeSound session=" ..
-            tostring(sessionId) .. " soundAtMs=" .. tostring(soundAtMs) ..
+    if gameOverAtMs < impactDelayMs then
+        Debug.Log("trap-sequence config gameOverBeforeImpact session=" ..
+            tostring(sessionId) ..
+            " impactDelayMs=" .. tostring(impactDelayMs) ..
             " gameOverAtMs=" .. tostring(gameOverAtMs))
     end
 
-    local okSoundTimer, soundTimerErr = schedule(soundAtMs, function()
-        if stale(generation, sessionId, "sound") then return end
-
-        Debug.Log("trap-sequence sound session=" .. tostring(sessionId))
-        if TrapEffects and type(TrapEffects.PlayArrowSound) == "function" then
-            local ok, result = TrapEffects.PlayArrowSound(session)
-            if not ok then
-                Debug.Log("trap-sequence sound-failed session=" ..
-                    tostring(sessionId) .. " error=" .. tostring(result))
-            end
-        else
+    Debug.Log("trap-sequence sound session=" .. tostring(sessionId))
+    if TrapEffects and type(TrapEffects.PlayArrowSound) == "function" then
+        local ok, result = TrapEffects.PlayArrowSound(session)
+        if not ok then
             Debug.Log("trap-sequence sound-failed session=" ..
-                tostring(sessionId) .. " error=trap-effects-unavailable")
+                tostring(sessionId) .. " error=" .. tostring(result))
+        end
+    else
+        Debug.Log("trap-sequence sound-failed session=" ..
+            tostring(sessionId) .. " error=trap-effects-unavailable")
+    end
+
+    local okImpactTimer, impactTimerErr = schedule(impactDelayMs, function()
+        if stale(generation, sessionId, "impact") then return end
+
+        Debug.Log("trap-sequence impact session=" .. tostring(sessionId))
+        if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
+            TrapEffects.ApplyBloodEffect(sessionId)
+        end
+        if TrapEffects and type(TrapEffects.ApplyBuffExperiment) == "function" then
+            TrapEffects.ApplyBuffExperiment(sessionId)
+        end
+        if TrapEffects and type(TrapEffects.ApplyRagdollEffect) == "function" then
+            TrapEffects.ApplyRagdollEffect(sessionId)
         end
     end)
 
-    if not okSoundTimer then
-        Debug.Log("trap-sequence sound-schedule-failed session=" ..
-            tostring(sessionId) .. " error=" .. tostring(soundTimerErr))
+    if not okImpactTimer then
+        Debug.Log("trap-sequence impact-schedule-failed session=" ..
+            tostring(sessionId) .. " error=" .. tostring(impactTimerErr))
+        if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
+            TrapEffects.ApplyBloodEffect(sessionId)
+        end
+        if TrapEffects and type(TrapEffects.ApplyBuffExperiment) == "function" then
+            TrapEffects.ApplyBuffExperiment(sessionId)
+        end
+        if TrapEffects and type(TrapEffects.ApplyRagdollEffect) == "function" then
+            TrapEffects.ApplyRagdollEffect(sessionId)
+        end
     end
 
     if config.gameOverEnabled == false then

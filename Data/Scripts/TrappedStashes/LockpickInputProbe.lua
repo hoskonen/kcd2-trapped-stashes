@@ -46,6 +46,13 @@ local function handleAction(action, activation, value)
     local kind = ACTIONS[action]
     if kind == nil then return end
     logLifecycle(action, activation, value)
+    if activation == "release" then
+        if not (MinigameProbe and MinigameProbe._active == true) then return end
+        if Session and type(Session.TriggerFromTurnRelease) == "function" then
+            Session.TriggerFromTurnRelease()
+        end
+        return
+    end
     if activation ~= "press" then return end
     if tonumber(value) ~= nil and tonumber(value) <= 0 then return end
     if not (MinigameProbe and MinigameProbe._active == true) then return end

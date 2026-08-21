@@ -90,12 +90,29 @@ local function addSlider(settingId, label, description, minValue, maxValue,
     )
 end
 
+local function profileById(config, profileId)
+    local trapAudio = config.trapAudio or {}
+    local profiles = trapAudio.profiles
+    if type(profiles) ~= "table" then return nil end
+
+    for _, profile in ipairs(profiles) do
+        if type(profile) == "table" and profile.id == profileId then
+            return profile
+        end
+    end
+    return nil
+end
+
 function MM.BuildSettings()
     local config = cfg()
     local effects = config.effects or {}
     local trapSequence = config.trapSequence or {}
+    local trapAudio = config.trapAudio or {}
+    local trapTriggers = config.trapTriggers or {}
     local timedLockTrap = config.timedLockTrap or {}
     local diagnostics = config.diagnostics or {}
+    local crossbowProfile = profileById(config, "crossbow") or {}
+    local pistoleProfile = profileById(config, "pistole") or {}
 
     MCM.AddMod(MOD_ID, MOD_NAME)
 
@@ -134,27 +151,79 @@ function MM.BuildSettings()
     if config.devToggles == true then
         MCM.AddCategory(
             MOD_ID,
-            "Developer - Sequence",
-            "Development controls for trap timing."
+            "Developer - Audio",
+            "Development controls for trap audio profile selection."
+        )
+        addToggle(
+            "random_trap_audio",
+            "Random trap audio",
+            "Randomly select one enabled source-defined audio profile per trap.",
+            trapAudio.randomEnabled ~= false
+        )
+        addToggle(
+            "force_crossbow_audio",
+            "Test crossbow only",
+            "Force the crossbow profile for trap audio testing.",
+            trapAudio.forcedProfile == "crossbow"
+        )
+        addToggle(
+            "force_pistole_audio",
+            "Test pistole only",
+            "Force the pistole profile for trap audio testing.",
+            trapAudio.forcedProfile == "pistole"
+        )
+
+        MCM.AddCategory(
+            MOD_ID,
+            "Crossbow Trap",
+            "Development timing controls for the crossbow trap profile."
         )
         addSlider(
-            "sound_at_ms",
-            "Sound delay",
-            "Milliseconds from trap trigger to arrow sound.",
+            "crossbow_impact_ms",
+            "Impact delay",
+            "Milliseconds from crossbow audio start to impact effects.",
             0,
             5000,
             50,
-            tonumber(trapSequence.soundAtMs) or 250,
+            tonumber(crossbowProfile.impactDelayMs) or 350,
             " ms"
         )
         addSlider(
-            "gameover_at_ms",
+            "crossbow_gameover_ms",
             "GameOver delay",
-            "Milliseconds from trap trigger to GameOver.",
+            "Milliseconds from crossbow trap trigger to GameOver.",
             0,
             10000,
             50,
-            tonumber(trapSequence.gameOverAtMs) or 1250,
+            tonumber(crossbowProfile.gameOverDelayMs) or
+                tonumber(trapSequence.gameOverAtMs) or 2000,
+            " ms"
+        )
+
+        MCM.AddCategory(
+            MOD_ID,
+            "Pistole Trap",
+            "Development timing controls for the pistole trap profile."
+        )
+        addSlider(
+            "pistole_impact_ms",
+            "Impact delay",
+            "Milliseconds from pistole audio start to impact effects.",
+            0,
+            5000,
+            50,
+            tonumber(pistoleProfile.impactDelayMs) or 900,
+            " ms"
+        )
+        addSlider(
+            "pistole_gameover_ms",
+            "GameOver delay",
+            "Milliseconds from pistole trap trigger to GameOver.",
+            0,
+            10000,
+            50,
+            tonumber(pistoleProfile.gameOverDelayMs) or
+                tonumber(trapSequence.gameOverAtMs) or 2600,
             " ms"
         )
 
@@ -188,6 +257,18 @@ function MM.BuildSettings()
             0.5,
             tonumber(timedLockTrap.maxFuseSeconds) or 14,
             " s"
+        )
+        addToggle(
+            "trigger_on_lockpick_break",
+            "Trigger on lockpick break",
+            "Trigger an eligible trap when the lockpick breaks.",
+            trapTriggers.onLockpickBreak ~= false
+        )
+        addToggle(
+            "trigger_on_turn_release",
+            "Trigger on turn release",
+            "Trigger an eligible trap when lock turning is released after it began.",
+            trapTriggers.onTurnRelease == true
         )
 
         MCM.AddCategory(
@@ -239,14 +320,66 @@ function MM.OnValueChanged(settingId, value)
         local enabled = toggleValue(value)
         if enabled == nil then return end
         Settings.SetEffectEnabled("blur", enabled, "mcm", true)
-    elseif settingId == "sound_at_ms" then
+    elseif settingId == "random_trap_audio" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetRandomTrapAudioEnabled(enabled, "mcm", true)
+    elseif settingId == "force_crossbow_audio" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetForcedTrapAudioProfile(
+            enabled and "crossbow" or nil,
+            "mcm",
+            true
+        )
+    elseif settingId == "force_pistole_audio" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetForcedTrapAudioProfile(
+            enabled and "pistole" or nil,
+            "mcm",
+            true
+        )
+    elseif settingId == "crossbow_impact_ms" then
         local ms = sliderMs(value, 0, 5000)
         if ms == nil then return end
-        Settings.SetTrapTiming("soundAtMs", ms, "mcm", true)
-    elseif settingId == "gameover_at_ms" then
+        Settings.SetTrapAudioProfileTiming(
+            "crossbow",
+            "impactDelayMs",
+            ms,
+            "mcm",
+            true
+        )
+    elseif settingId == "crossbow_gameover_ms" then
         local ms = sliderMs(value, 0, 10000)
         if ms == nil then return end
-        Settings.SetTrapTiming("gameOverAtMs", ms, "mcm", true)
+        Settings.SetTrapAudioProfileTiming(
+            "crossbow",
+            "gameOverDelayMs",
+            ms,
+            "mcm",
+            true
+        )
+    elseif settingId == "pistole_impact_ms" then
+        local ms = sliderMs(value, 0, 5000)
+        if ms == nil then return end
+        Settings.SetTrapAudioProfileTiming(
+            "pistole",
+            "impactDelayMs",
+            ms,
+            "mcm",
+            true
+        )
+    elseif settingId == "pistole_gameover_ms" then
+        local ms = sliderMs(value, 0, 10000)
+        if ms == nil then return end
+        Settings.SetTrapAudioProfileTiming(
+            "pistole",
+            "gameOverDelayMs",
+            ms,
+            "mcm",
+            true
+        )
     elseif settingId == "timed_fuse_enabled" then
         local enabled = toggleValue(value)
         if enabled == nil then return end
@@ -259,6 +392,14 @@ function MM.OnValueChanged(settingId, value)
         local seconds = sliderSeconds(value, 1, 30)
         if seconds == nil then return end
         Settings.SetTimedFuseSeconds("maxFuseSeconds", seconds, "mcm", true)
+    elseif settingId == "trigger_on_lockpick_break" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetTrapTriggerEnabled("onLockpickBreak", enabled, "mcm", true)
+    elseif settingId == "trigger_on_turn_release" then
+        local enabled = toggleValue(value)
+        if enabled == nil then return end
+        Settings.SetTrapTriggerEnabled("onTurnRelease", enabled, "mcm", true)
     elseif settingId == "debug" then
         local enabled = toggleValue(value)
         if enabled == nil then return end

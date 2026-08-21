@@ -29,6 +29,40 @@ TrappedStashes.Config = {
         gameOverAtMs = 2000,
     },
 
+    trapAudio = {
+        randomEnabled = true,
+        forcedProfile = false,
+        defaultProfile = "crossbow",
+        profiles = {
+            {
+                id = "crossbow",
+                type = "crossbow",
+                enabled = true,
+                files = {
+                    "Sounds/crossbow-shot1.wav",
+                    "Sounds/crossbow-shot2.wav",
+                },
+                impactDelayMs = 350,
+                gameOverDelayMs = 2000,
+            },
+            {
+                id = "pistole",
+                type = "pistole",
+                enabled = true,
+                files = {
+                    "Sounds/pistole-shot1.wav",
+                },
+                impactDelayMs = 900,
+                gameOverDelayMs = 2600,
+            },
+        },
+    },
+
+    trapTriggers = {
+        onLockpickBreak = true,
+        onTurnRelease = false,
+    },
+
     timedLockTrap = {
         enabled = true,
         minFuseSeconds = 8,
@@ -39,8 +73,7 @@ TrappedStashes.Config = {
         enabled = true,
         maxBuffs = 20,
         buffs = {
-            { id = "25bb8ae5-4b2a-4d82-aeef-0309d885f147", name = "trappedstashes_blood_screen" },
-            { id = "eca9aa28-9c54-4af1-9fac-c10b439c5a8b", name = "test_witch_visual" },
+            { id = "62eeb23f-ccbf-4af9-8f8d-de57da75c50e", name = "test_fading" },
         },
     },
 
