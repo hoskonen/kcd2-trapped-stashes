@@ -4,6 +4,7 @@ TrappedStashes._lifecycleBindGeneration =
 
 Script.ReloadScript("Scripts/TrappedStashes/Config.lua")
 Script.ReloadScript("Scripts/TrappedStashes/Debug.lua")
+Script.ReloadScript("Scripts/TrappedStashes/Settings.lua")
 Script.ReloadScript("Scripts/TrappedStashes/LockpickTarget.lua")
 Script.ReloadScript("Scripts/TrappedStashes/Eligibility.lua")
 Script.ReloadScript("Scripts/TrappedStashes/LockpickSession.lua")
@@ -12,11 +13,20 @@ Script.ReloadScript("Scripts/TrappedStashes/GameOver.lua")
 Script.ReloadScript("Scripts/TrappedStashes/TrapEffects.lua")
 Script.ReloadScript("Scripts/TrappedStashes/TrapSequence.lua")
 Script.ReloadScript("Scripts/TrappedStashes/Events.lua")
+Script.ReloadScript("Scripts/TrappedStashes/ModMenu.lua")
 Script.ReloadScript("Scripts/TrappedStashes/DebugCommands.lua")
 Script.ReloadScript("Scripts/TrappedStashes/MinigameProbe.lua")
 
 function TrappedStashes.OnGameplayStarted()
+    if TrappedStashes.Settings and TrappedStashes.Settings.Initialize then
+        TrappedStashes.Settings.Initialize(TrappedStashes.Config)
+    end
+    if TrappedStashes.ModMenu and TrappedStashes.ModMenu.Register then
+        TrappedStashes.ModMenu.Register()
+    end
+
     if TrappedStashes.Config and TrappedStashes.Config.enabled == false then
+        TrappedStashes.Debug.Log("Initialized disabled=true")
         return
     end
 

@@ -20,6 +20,10 @@ local function cfg()
     return TrappedStashes.Config or {}
 end
 
+local function effectsCfg()
+    return cfg().effects or {}
+end
+
 local function buffExperimentCfg()
     return cfg().trapBuffExperiment or {}
 end
@@ -82,6 +86,12 @@ function TrapEffects.PlayArrowSound(session)
 end
 
 function TrapEffects.ApplyBloodEffect(sessionId)
+    if effectsCfg().blood == false then
+        log("trap-effect blood skipped session=" .. tostring(sessionId) ..
+            " reason=disabled")
+        return false, "disabled"
+    end
+
     local ok, result = addPlayerBuff(
         sessionId,
         BLOOD_SCREEN_BUFF_ID,
@@ -98,6 +108,10 @@ function TrapEffects.ApplyBloodEffect(sessionId)
 end
 
 function TrapEffects.ApplyBuffExperiment(sessionId)
+    if effectsCfg().blur == false then
+        return false, "disabled"
+    end
+
     local config = buffExperimentCfg()
     if config.enabled ~= true then
         return false, "disabled"
@@ -138,6 +152,19 @@ function TrapEffects.ApplyBuffExperiment(sessionId)
     log("trap-buff-experiment done session=" .. tostring(sessionId) ..
         " applied=" .. tostring(applied))
     return true, applied
+end
+
+function TrapEffects.ApplyRagdollEffect(sessionId)
+    if effectsCfg().ragdoll ~= true then
+        return false, "disabled"
+    end
+
+    return addPlayerBuff(
+        sessionId,
+        AUTHORED_RAGDOLL_BUFF_ID,
+        "trappedstashes_ragdoll_authored",
+        "ragdoll"
+    )
 end
 
 function TrapEffects.TestAuthoredRagdoll()

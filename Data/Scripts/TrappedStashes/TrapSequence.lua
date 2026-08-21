@@ -125,6 +125,10 @@ end
 
 function TrapSequence.Start(session)
     local config = cfg()
+    if TrappedStashes.Config and TrappedStashes.Config.enabled == false then
+        return false, "mod-disabled"
+    end
+
     if config.enabled ~= true then
         return false, "disabled"
     end
@@ -157,6 +161,9 @@ function TrapSequence.Start(session)
     end
     if TrapEffects and type(TrapEffects.ApplyBuffExperiment) == "function" then
         TrapEffects.ApplyBuffExperiment(sessionId)
+    end
+    if TrapEffects and type(TrapEffects.ApplyRagdollEffect) == "function" then
+        TrapEffects.ApplyRagdollEffect(sessionId)
     end
 
     if gameOverAtMs < soundAtMs then

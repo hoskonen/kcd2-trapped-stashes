@@ -12,6 +12,10 @@ local function cfg()
     return TrappedStashes.Config and TrappedStashes.Config.trapDeathAudio or {}
 end
 
+local function effectsCfg()
+    return TrappedStashes.Config and TrappedStashes.Config.effects or {}
+end
+
 local function manager()
     if type(AudioManager) == "table" then
         return AudioManager
@@ -200,7 +204,7 @@ end
 
 function Audio.PlayArrowTrapSound(_session)
     local config = cfg()
-    if config.enabled ~= true then
+    if config.enabled ~= true or effectsCfg().sound == false then
         Debug.Trace("audio arrow-trap skipped reason=disabled")
         return false, "disabled"
     end

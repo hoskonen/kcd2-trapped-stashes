@@ -3,6 +3,14 @@ TrappedStashes = TrappedStashes or {}
 TrappedStashes.Config = {
     enabled = true,
     debug = true,
+    devToggles = true,
+
+    effects = {
+        sound = true,
+        blood = true,
+        blur = true,
+        ragdoll = false,
+    },
 
     lifecycle = {
         bindMaxTries = 50,
