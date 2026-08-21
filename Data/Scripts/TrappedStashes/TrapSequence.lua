@@ -170,10 +170,13 @@ function TrapSequence.Start(session)
         " gameOverEnabled=" .. tostring(config.gameOverEnabled ~= false))
 
     if gameOverAtMs < impactDelayMs then
-        Debug.Log("trap-sequence config gameOverBeforeImpact session=" ..
+        local requestedGameOverAtMs = gameOverAtMs
+        gameOverAtMs = impactDelayMs + 100
+        Debug.Log("trap-sequence config gameOverBeforeImpact adjusted session=" ..
             tostring(sessionId) ..
             " impactDelayMs=" .. tostring(impactDelayMs) ..
-            " gameOverAtMs=" .. tostring(gameOverAtMs))
+            " requestedGameOverAtMs=" .. tostring(requestedGameOverAtMs) ..
+            " effectiveGameOverAtMs=" .. tostring(gameOverAtMs))
     end
 
     Debug.Log("trap-sequence sound session=" .. tostring(sessionId))
