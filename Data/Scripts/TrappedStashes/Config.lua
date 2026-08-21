@@ -16,7 +16,7 @@ TrappedStashes.Config = {
 
     trapSequence = {
         enabled = true,
-        gameOverEnabled = false,
+        gameOverEnabled = true,
         soundAtMs = 350,
         gameOverAtMs = 2000,
     },
