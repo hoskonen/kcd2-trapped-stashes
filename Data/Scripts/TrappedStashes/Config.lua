@@ -8,7 +8,7 @@ TrappedStashes.Config = {
     effects = {
         sound = true,
         blood = true,
-        blur = true,
+        crossbowHitBlood = true,
         ragdoll = false,
     },
 

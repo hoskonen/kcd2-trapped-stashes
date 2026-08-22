@@ -175,8 +175,6 @@ local function readRecord(db)
         enabled = normalizeBoolean(value.enabled),
         effects = {
             sound = normalizeBoolean(effects.sound),
-            blood = normalizeBoolean(effects.blood),
-            blur = normalizeBoolean(effects.blur),
         },
         trapSequence = {
             soundAtMs = normalizeMs(trapSequence.soundAtMs, 0, 10000),
@@ -214,8 +212,6 @@ local function buildRecord(config)
         enabled = config.enabled == true and 1 or 0,
         effects = {
             sound = config.effects.sound ~= false and 1 or 0,
-            blood = config.effects.blood ~= false and 1 or 0,
-            blur = config.effects.blur ~= false and 1 or 0,
         },
         trapSequence = {
             soundAtMs = normalizeMs(config.trapSequence.soundAtMs, 0, 10000) or 250,
@@ -256,8 +252,6 @@ local function applyRecord(config, record)
             config.effects.sound = record.effects.sound
             config.trapDeathAudio.enabled = record.effects.sound
         end
-        if record.effects.blood ~= nil then config.effects.blood = record.effects.blood end
-        if record.effects.blur ~= nil then config.effects.blur = record.effects.blur end
     end
 
     if record.trapSequence then
@@ -314,8 +308,6 @@ local function recordMatchesConfig(record, config)
     return record ~= nil
         and record.enabled == config.enabled
         and record.effects.sound == (config.effects.sound ~= false)
-        and record.effects.blood == (config.effects.blood ~= false)
-        and record.effects.blur == (config.effects.blur ~= false)
         and record.trapSequence.soundAtMs == config.trapSequence.soundAtMs
         and record.trapSequence.gameOverAtMs == config.trapSequence.gameOverAtMs
         and record.trapAudio.randomEnabled ==
@@ -431,8 +423,7 @@ end
 
 function Settings.SetEffectEnabled(effectName, enabled, source, persist)
     local config = ensureShape(TrappedStashes.Config)
-    if effectName ~= "sound" and effectName ~= "blood" and
-            effectName ~= "blur" then
+    if effectName ~= "sound" then
         return false, "unknown effect"
     end
 

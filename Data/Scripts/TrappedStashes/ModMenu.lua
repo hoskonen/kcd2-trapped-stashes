@@ -135,19 +135,6 @@ function MM.BuildSettings()
         "Play the configured arrow trap sound.",
         effects.sound ~= false
     )
-    addToggle(
-        "effect_blood",
-        "Blood effect",
-        "Apply the trapped stash blood screen effect.",
-        effects.blood ~= false
-    )
-    addToggle(
-        "effect_blur",
-        "Blur effect",
-        "Apply the retained blur/visual buff experiment.",
-        effects.blur ~= false
-    )
-
     if config.devToggles == true then
         MCM.AddCategory(
             MOD_ID,
@@ -312,14 +299,6 @@ function MM.OnValueChanged(settingId, value)
         local enabled = toggleValue(value)
         if enabled == nil then return end
         Settings.SetEffectEnabled("sound", enabled, "mcm", true)
-    elseif settingId == "effect_blood" then
-        local enabled = toggleValue(value)
-        if enabled == nil then return end
-        Settings.SetEffectEnabled("blood", enabled, "mcm", true)
-    elseif settingId == "effect_blur" then
-        local enabled = toggleValue(value)
-        if enabled == nil then return end
-        Settings.SetEffectEnabled("blur", enabled, "mcm", true)
     elseif settingId == "random_trap_audio" then
         local enabled = toggleValue(value)
         if enabled == nil then return end

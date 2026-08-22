@@ -11,6 +11,15 @@
       implementation="Cpp:BasicTimed"
       is_persistent="false"
       visual_effect="trappedstashes_blood_screen" />
-    <buff buff_class_id="1" buff_exclusivity_id="1" buff_id="8d3a0c3e-9f38-4e50-9f0f-b8a226d1f5c1" buff_lifetime_id="0" buff_name="trappedstashes_visualBleeding" buff_params="btd*1" duration="-1" icon_id="0" implementation="Cpp:Constant" is_persistent="false" />
+    <buff buff_class_id="0"
+      buff_exclusivity_id="1"
+      buff_id="d2869698-6eaf-4d3e-952c-22143344d8a2"
+      buff_lifetime_id="0"
+      buff_name="trappedstashes_crossbow_hit_screen"
+      duration="1.2"
+      icon_id="0"
+      implementation="Cpp:BasicTimed"
+      is_persistent="false"
+      visual_effect="trappedstashes_crossbow_hit_screen" />
     </buffs>
 </database>

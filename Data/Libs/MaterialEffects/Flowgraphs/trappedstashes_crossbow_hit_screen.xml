@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Graph>
+	<Nodes>
+		<Node Id="1" Class="MaterialFX:HUDStartFX" pos="-620,-410,0" flags="0">
+			<Inputs />
+		</Node>
+		<Node Id="2" Class="MaterialFX:HUDEndFX" pos="-220,-250,0" flags="0">
+			<Inputs />
+		</Node>
+		<Node Id="3" Class="Image:ScreenFader" pos="10,-20,0" flags="0">
+			<Inputs FadeGroup="FX:TrappedStashesCrossbowHit" UseCurColor="0" FadeInTime="0.05" FadeOutTime="0.7" color_FadeColor="1,1,1" tex_TextureName="textures/ui/overlays/blood_hit_head_ui.dds" UpdateAlways="0" FadeAlpha="1" Priority="25" Persistent="0" />
+		</Node>
+	</Nodes>
+	<Edges>
+		<Edge nodeIn="3" nodeOut="1" portIn="FadeAlpha" portOut="Intensity" enabled="1" />
+		<Edge nodeIn="3" nodeOut="1" portIn="FadeIn" portOut="Started" enabled="1" />
+		<Edge nodeIn="3" nodeOut="2" portIn="FadeOut" portOut="Ended" enabled="1" />
+	</Edges>
+</Graph>

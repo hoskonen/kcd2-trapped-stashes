@@ -195,6 +195,9 @@ function TrapSequence.Start(session)
         if stale(generation, sessionId, "impact") then return end
 
         Debug.Log("trap-sequence impact session=" .. tostring(sessionId))
+        if TrapEffects and type(TrapEffects.ApplyCrossbowHitEffect) == "function" then
+            TrapEffects.ApplyCrossbowHitEffect(sessionId, audioProfile)
+        end
         if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
             TrapEffects.ApplyBloodEffect(sessionId)
         end
@@ -209,6 +212,9 @@ function TrapSequence.Start(session)
     if not okImpactTimer then
         Debug.Log("trap-sequence impact-schedule-failed session=" ..
             tostring(sessionId) .. " error=" .. tostring(impactTimerErr))
+        if TrapEffects and type(TrapEffects.ApplyCrossbowHitEffect) == "function" then
+            TrapEffects.ApplyCrossbowHitEffect(sessionId, audioProfile)
+        end
         if TrapEffects and type(TrapEffects.ApplyBloodEffect) == "function" then
             TrapEffects.ApplyBloodEffect(sessionId)
         end

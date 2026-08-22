@@ -7,7 +7,7 @@ local Audio = TrappedStashes.Audio
 local TrapEffects = TrappedStashes.TrapEffects
 
 local DEFAULT_SOUND_PATH = "Sounds/crossbow-shot1.wav"
-local COMMAND_SET_VERSION = "cleanup-v1"
+local COMMAND_SET_VERSION = "crossbow-hit-screen-v1"
 
 local function trim(value)
     local text = tostring(value or "")
@@ -63,6 +63,16 @@ function Commands.BloodScreenTest()
     return TrapEffects.TestBloodScreen()
 end
 
+function Commands.CrossbowHitScreenTest()
+    if TrapEffects == nil or
+            type(TrapEffects.TestCrossbowHitScreen) ~= "function" then
+        Debug.Log("crossbow-hit-screen-test attempted=true result=false error=trap-effects-unavailable")
+        return false
+    end
+
+    return TrapEffects.TestCrossbowHitScreen()
+end
+
 local function registerCommand(name, callback, description)
     System.AddCCommand(name, callback, description)
 end
@@ -96,8 +106,14 @@ function Commands.Register()
         "Trapped Stashes: apply the custom blood screen test buff"
     )
 
+    registerCommand(
+        "ts_crossbow_hit_screen_test",
+        "TrappedStashes.Commands.CrossbowHitScreenTest()",
+        "Trapped Stashes: apply the crossbow hit screen test buff"
+    )
+
     Commands._registered = true
     Commands._registeredVersion = COMMAND_SET_VERSION
-    Debug.Log("commands registered names=ts_sound_file_test,ts_ragdoll_authored,ts_blood_screen_test")
+    Debug.Log("commands registered names=ts_sound_file_test,ts_ragdoll_authored,ts_blood_screen_test,ts_crossbow_hit_screen_test")
     return true
 end

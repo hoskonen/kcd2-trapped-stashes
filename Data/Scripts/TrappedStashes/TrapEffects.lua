@@ -6,6 +6,7 @@ local Debug = TrappedStashes.Debug
 local Audio = TrappedStashes.Audio
 
 local BLOOD_SCREEN_BUFF_ID = "25bb8ae5-4b2a-4d82-aeef-0309d885f147"
+local CROSSBOW_HIT_SCREEN_BUFF_ID = "d2869698-6eaf-4d3e-952c-22143344d8a2"
 local AUTHORED_RAGDOLL_BUFF_ID = "15875b20-6a75-47e2-89fc-5c5f2173a4a8"
 
 local function log(message)
@@ -107,11 +108,33 @@ function TrapEffects.ApplyBloodEffect(sessionId)
     return ok, result
 end
 
-function TrapEffects.ApplyBuffExperiment(sessionId)
-    if effectsCfg().blur == false then
+function TrapEffects.ApplyCrossbowHitEffect(sessionId, audioProfile)
+    if effectsCfg().crossbowHitBlood == false then
+        log("trap-effect crossbow-hit skipped session=" .. tostring(sessionId) ..
+            " reason=disabled")
         return false, "disabled"
     end
 
+    if audioProfile ~= nil and tostring(audioProfile.type) ~= "crossbow" then
+        return false, "not-crossbow"
+    end
+
+    local ok, result = addPlayerBuff(
+        sessionId,
+        CROSSBOW_HIT_SCREEN_BUFF_ID,
+        "trappedstashes_crossbow_hit_screen",
+        "crossbow-hit"
+    )
+
+    if ok then
+        log("trap-effect crossbow-hit session=" .. tostring(sessionId) ..
+            " buff=" .. CROSSBOW_HIT_SCREEN_BUFF_ID)
+    end
+
+    return ok, result
+end
+
+function TrapEffects.ApplyBuffExperiment(sessionId)
     local config = buffExperimentCfg()
     if config.enabled ~= true then
         return false, "disabled"
@@ -188,6 +211,20 @@ function TrapEffects.TestBloodScreen()
         "debug"
     )
     log("blood-screen-test buff=" .. tostring(BLOOD_SCREEN_BUFF_ID) ..
+        " attempted=true result=" .. tostring(ok) ..
+        " detail=" .. tostring(result))
+    return ok
+end
+
+function TrapEffects.TestCrossbowHitScreen()
+    local ok, result = addPlayerBuff(
+        "debug",
+        CROSSBOW_HIT_SCREEN_BUFF_ID,
+        "trappedstashes_crossbow_hit_screen",
+        "debug"
+    )
+    log("crossbow-hit-screen-test buff=" ..
+        tostring(CROSSBOW_HIT_SCREEN_BUFF_ID) ..
         " attempted=true result=" .. tostring(ok) ..
         " detail=" .. tostring(result))
     return ok
